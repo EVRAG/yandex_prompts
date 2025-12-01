@@ -1,0 +1,362 @@
+{
+  "metadata": {
+    "eventName": "Prompt Night Demo",
+    "eventDate": "2025-12-01",
+    "host": "Prompt Night Studio",
+    "supportContact": "@promptnight_support"
+  },
+  "qr": {
+    "joinUrl": "https://game.prompt-night.demo/join",
+    "assetUrl": "https://cdn.prompt-night.demo/assets/qr.png",
+    "instructions": "Отсканируйте QR и введите имя, чтобы присоединиться"
+  },
+  "stages": [
+    {
+      "id": "waiting_lobby",
+      "kind": "waiting",
+      "label": "Регистрация",
+      "description": "Игроки подключаются и вводят имена",
+      "message": "Добро пожаловать на Prompt Night! Ждем остальных участников.",
+      "cta": "Войдите и приготовьтесь",
+      "screen": "both"
+    },
+    {
+      "id": "info_rules",
+      "kind": "info",
+      "label": "Правила",
+      "headline": "Как проходит игра",
+      "body": "3 раунда: текст, изображения и видео. Отвечайте быстро и точно, чтобы попасть в топ!",
+      "screen": "display"
+    },
+    {
+      "id": "round1_q1",
+      "kind": "question",
+      "label": "Раунд 1 — Задание 1",
+      "round": 1,
+      "order": 1,
+      "description": "Текстовый вопрос раунда 1",
+      "content": {
+        "type": "text",
+        "prompt": "Какой город называют культурной столицей России?"
+      },
+      "responseType": "text",
+      "scoring": {
+        "mode": "manual",
+        "maxPoints": 100,
+        "defaultPoints": 50
+      },
+      "screen": "clients"
+    },
+    {
+      "id": "round1_q2",
+      "kind": "question",
+      "label": "Раунд 1 — Задание 2",
+      "round": 1,
+      "order": 2,
+      "description": "Текстовый вопрос раунда 1",
+      "content": {
+        "type": "text",
+        "prompt": "Назовите крупнейший остров Средиземного моря."
+      },
+      "responseType": "text",
+      "scoring": {
+        "mode": "manual",
+        "maxPoints": 100
+      },
+      "screen": "clients"
+    },
+    {
+      "id": "round1_q3",
+      "kind": "question",
+      "label": "Раунд 1 — Задание 3",
+      "round": 1,
+      "order": 3,
+      "content": {
+        "type": "text",
+        "prompt": "Какой химический элемент обозначается символом Au?"
+      },
+      "responseType": "text",
+      "scoring": {
+        "mode": "manual",
+        "maxPoints": 120
+      },
+      "screen": "clients"
+    },
+    {
+      "id": "round1_q4",
+      "kind": "question",
+      "label": "Раунд 1 — Задание 4",
+      "round": 1,
+      "order": 4,
+      "content": {
+        "type": "text",
+        "prompt": "Как называется процесс превращения пара в жидкость?"
+      },
+      "responseType": "text",
+      "scoring": {
+        "mode": "manual",
+        "maxPoints": 80
+      },
+      "screen": "clients"
+    },
+    {
+      "id": "round1_q5",
+      "kind": "question",
+      "label": "Раунд 1 — Задание 5",
+      "round": 1,
+      "order": 5,
+      "content": {
+        "type": "text",
+        "prompt": "Какой писатель создал героя Шерлока Холмса?"
+      },
+      "responseType": "text",
+      "scoring": {
+        "mode": "manual",
+        "maxPoints": 90
+      },
+      "screen": "clients"
+    },
+    {
+      "id": "round1_q6",
+      "kind": "question",
+      "label": "Раунд 1 — Задание 6",
+      "round": 1,
+      "order": 6,
+      "content": {
+        "type": "text",
+        "prompt": "Как называется самая длинная река Южной Америки?"
+      },
+      "responseType": "text",
+      "scoring": {
+        "mode": "manual",
+        "maxPoints": 110
+      },
+      "screen": "clients"
+    },
+    {
+      "id": "round1_q7",
+      "kind": "question",
+      "label": "Раунд 1 — Задание 7",
+      "round": 1,
+      "order": 7,
+      "content": {
+        "type": "text",
+        "prompt": "Назовите столицу Австралии."
+      },
+      "responseType": "text",
+      "scoring": {
+        "mode": "manual",
+        "maxPoints": 100
+      },
+      "screen": "clients"
+    },
+    {
+      "id": "leaderboard_round1",
+      "kind": "leaderboard",
+      "label": "Итоги Раунда 1",
+      "description": "Первые промежуточные результаты",
+      "options": {
+        "topN": 10,
+        "highlightTop": 3,
+        "layout": "full"
+      },
+      "screen": "display"
+    },
+    {
+      "id": "round2_q1",
+      "kind": "question",
+      "label": "Раунд 2 — Задание 1",
+      "round": 2,
+      "order": 1,
+      "description": "Задание с изображением",
+      "content": {
+        "type": "image",
+        "prompt": "Что изображено на картинке?",
+        "assetUrl": "https://cdn.prompt-night.demo/media/round2/q1.png",
+        "caption": "Предмет из коллекции музея"
+      },
+      "responseType": "text",
+      "scoring": {
+        "mode": "manual",
+        "maxPoints": 150,
+        "allowPartial": true
+      },
+      "screen": "clients"
+    },
+    {
+      "id": "round2_q2",
+      "kind": "question",
+      "label": "Раунд 2 — Задание 2",
+      "round": 2,
+      "order": 2,
+      "content": {
+        "type": "image",
+        "prompt": "Определите художника по картине.",
+        "assetUrl": "https://cdn.prompt-night.demo/media/round2/q2.jpg"
+      },
+      "responseType": "text",
+      "scoring": {
+        "mode": "manual",
+        "maxPoints": 130
+      },
+      "screen": "clients"
+    },
+    {
+      "id": "round2_q3",
+      "kind": "question",
+      "label": "Раунд 2 — Задание 3",
+      "round": 2,
+      "order": 3,
+      "content": {
+        "type": "image",
+        "prompt": "Назовите город по панораме.",
+        "assetUrl": "https://cdn.prompt-night.demo/media/round2/q3.jpg"
+      },
+      "responseType": "text",
+      "scoring": {
+        "mode": "manual",
+        "maxPoints": 140
+      },
+      "screen": "clients"
+    },
+    {
+      "id": "round2_q4",
+      "kind": "question",
+      "label": "Раунд 2 — Задание 4",
+      "round": 2,
+      "order": 4,
+      "content": {
+        "type": "image",
+        "prompt": "Назовите бренд по фрагменту логотипа.",
+        "assetUrl": "https://cdn.prompt-night.demo/media/round2/q4.png"
+      },
+      "responseType": "text",
+      "scoring": {
+        "mode": "manual",
+        "maxPoints": 120
+      },
+      "screen": "clients"
+    },
+    {
+      "id": "round2_q5",
+      "kind": "question",
+      "label": "Раунд 2 — Задание 5",
+      "round": 2,
+      "order": 5,
+      "content": {
+        "type": "image",
+        "prompt": "Сколько объектов на изображении?",
+        "assetUrl": "https://cdn.prompt-night.demo/media/round2/q5.png"
+      },
+      "responseType": "text",
+      "scoring": {
+        "mode": "manual",
+        "maxPoints": 160
+      },
+      "screen": "clients"
+    },
+    {
+      "id": "leaderboard_round2",
+      "kind": "leaderboard",
+      "label": "Итоги Раунда 2",
+      "options": {
+        "topN": 10,
+        "highlightTop": 5,
+        "layout": "compact"
+      },
+      "screen": "display"
+    },
+    {
+      "id": "info_break",
+      "kind": "info",
+      "label": "Перерыв",
+      "headline": "Небольшая пауза",
+      "body": "Сделайте вдох, попейте воды. Скоро начнется видеораунд!",
+      "screen": "display"
+    },
+    {
+      "id": "round3_q1",
+      "kind": "question",
+      "label": "Раунд 3 — Видео 1",
+      "round": 3,
+      "order": 1,
+      "description": "Видео-вопрос с оценкой LLM",
+      "content": {
+        "type": "video",
+        "prompt": "Проанализируйте сюжет видео и объясните, что происходит.",
+        "assetUrl": "https://cdn.prompt-night.demo/media/round3/q1.mp4",
+        "autoplay": true,
+        "caption": "Сцена из документального фильма"
+      },
+      "responseType": "multiline",
+      "scoring": {
+        "mode": "llm",
+        "prompt": "Оцени ответ игрока по шкале 0-200 за точность и глубину анализа.",
+        "maxPoints": 200,
+        "model": "gpt-4.1-mini"
+      },
+      "screen": "clients"
+    },
+    {
+      "id": "round3_q2",
+      "kind": "question",
+      "label": "Раунд 3 — Видео 2",
+      "round": 3,
+      "order": 2,
+      "content": {
+        "type": "video",
+        "prompt": "Опишите настроение ролика и почему.",
+        "assetUrl": "https://cdn.prompt-night.demo/media/round3/q2.mp4",
+        "autoplay": true
+      },
+      "responseType": "multiline",
+      "scoring": {
+        "mode": "llm",
+        "prompt": "Дай оценку 0-180 за точность описания настроения и аргументацию.",
+        "maxPoints": 180,
+        "model": "gpt-4o-mini"
+      },
+      "screen": "clients"
+    },
+    {
+      "id": "round3_q3",
+      "kind": "question",
+      "label": "Раунд 3 — Видео 3",
+      "round": 3,
+      "order": 3,
+      "content": {
+        "type": "video",
+        "prompt": "Какой главный вывод героя по окончании ролика?",
+        "assetUrl": "https://cdn.prompt-night.demo/media/round3/q3.mp4",
+        "autoplay": true
+      },
+      "responseType": "multiline",
+      "scoring": {
+        "mode": "manual",
+        "maxPoints": 180,
+        "allowPartial": true
+      },
+      "screen": "clients"
+    },
+    {
+      "id": "leaderboard_final",
+      "kind": "leaderboard",
+      "label": "Финал",
+      "description": "Финальная турнирная таблица",
+      "options": {
+        "topN": 15,
+        "highlightTop": 3,
+        "layout": "full"
+      },
+      "screen": "display"
+    },
+    {
+      "id": "waiting_outro",
+      "kind": "waiting",
+      "label": "Завершение",
+      "message": "Спасибо за участие! Скоро объявим призы.",
+      "screen": "display"
+    }
+  ]
+}
+
