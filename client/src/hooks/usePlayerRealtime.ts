@@ -50,6 +50,8 @@ const clearStoredPlayer = () => {
   localStorage.removeItem(PLAYER_STORAGE_KEY);
 };
 
+type QuestionStageWithTimer = QuestionStage & { duration?: number };
+
 export function usePlayerRealtime() {
   const socketRef = useRef<PlayerSocket | null>(null);
   const storedPlayerRef = useRef<StoredPlayer | null>(readStoredPlayer());
@@ -166,7 +168,7 @@ export function usePlayerRealtime() {
 
   const questionContent = useMemo(() => {
     if (!stage || stage.kind !== 'question') return null;
-    return stage as QuestionStage;
+    return stage as QuestionStageWithTimer;
   }, [stage]);
 
   return {

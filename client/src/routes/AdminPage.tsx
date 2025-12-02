@@ -3,6 +3,10 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAdminRealtime } from '../hooks/useAdminRealtime';
 import type { StageTarget } from '../types/realtime';
 
+type QuestionStageWithTimer = QuestionStage & { duration?: number };
+const isQuestionStage = (stage: GameStage): stage is QuestionStageWithTimer =>
+  stage.kind === 'question';
+
 const statusStyles: Record<'connecting' | 'online' | 'error', string> = {
   connecting: 'bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-600/20',
   online: 'bg-yandex-green-50 text-yandex-green-700 ring-1 ring-inset ring-yandex-green-700/20',
@@ -209,11 +213,11 @@ export default function AdminPage() {
                           )}
                         </div>
                         <p className="mt-1 truncate text-sm text-gray-500">{stage.description || 'Нет описания'}</p>
-                        {stage.kind === 'question' && (
+                        {isQuestionStage(stage) && (
                           <div className="mt-2 text-sm text-gray-700 bg-gray-50 p-2 rounded-md border border-gray-100 whitespace-normal">
-                            <p className="font-medium">{(stage as QuestionStage).content.prompt}</p>
-                            {(stage as QuestionStage).duration && (
-                              <p className="text-xs text-gray-500 mt-1">⏱ {(stage as QuestionStage).duration}s</p>
+                            <p className="font-medium">{stage.content.prompt}</p>
+                            {stage.duration && (
+                              <p className="text-xs text-gray-500 mt-1">⏱ {stage.duration}s</p>
                             )}
                           </div>
                         )}
