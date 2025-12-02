@@ -6,7 +6,7 @@ services:
     env_file:
       - server/.env
     ports:
-      - "4000:4000"
+      - "${SERVER_HOST_PORT:-4000}:4000"
     restart: unless-stopped
 
   client:
@@ -14,10 +14,10 @@ services:
       context: .
       dockerfile: client/Dockerfile
       args:
-        VITE_SERVER_URL: http://server:4000
+        VITE_SERVER_URL: ${CLIENT_PUBLIC_SERVER_URL:-http://localhost:4000}
     depends_on:
       - server
     ports:
-      - "5173:80"
+      - "${CLIENT_HOST_PORT:-5173}:80"
     restart: unless-stopped
 

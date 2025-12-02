@@ -13,6 +13,7 @@ This document explains how to run the Yandex Prompt Night stack inside Docker an
 - `Dockerfile.server` — builds and runs the Express + Socket.IO backend.
 - `client/Dockerfile` — builds the Vite client and serves it via nginx with SPA routing.
 - `docker-compose.yml` — orchestrates both services on a shared network.
+- `.env.example` — compose-level overrides (host ports, public API URL for the client).
 - `server/.env.example` — reference for the server-side environment variables that must be provided.
 
 ## 1. Prepare Environment Variables
@@ -21,6 +22,10 @@ This document explains how to run the Yandex Prompt Night stack inside Docker an
 2. Fill in the secrets:
    - `OPENAI_API_KEY`: required for scoring answers.
    - `PORT`: optional (defaults to `4000`).
+3. Copy `.env.example` to `.env` (root of the repo) and set compose overrides:
+   - `SERVER_HOST_PORT`: external port that exposes the API (default `4000`).
+   - `CLIENT_HOST_PORT`: external port for the nginx SPA (set to `80` if you want the domain root to work without a port).
+   - `CLIENT_PUBLIC_SERVER_URL`: public URL that browsers must use to reach the API/WebSocket endpoint (e.g. `https://gse-vote.ru` or `http://gse-vote.ru:4000`).
 
 ## 2. Build and Run with Docker Compose
 
@@ -29,22 +34,20 @@ docker compose build
 docker compose up -d
 ```
 
-Services:
+Services (defaults unless you override them in `.env`):
 
-- `server` exposed on `localhost:4000`.
-- `client` (nginx) exposed on `localhost:5173`.
+- `server` exposed on `${SERVER_HOST_PORT:-4000}`.
+- `client` (nginx) exposed on `${CLIENT_HOST_PORT:-5173}`.
+
+To serve the client on your domain, set `CLIENT_HOST_PORT=80` and `CLIENT_PUBLIC_SERVER_URL=http://your-domain.tld:4000` (or `https://your-domain.tld` if you terminate TLS in front of Docker), then rebuild:
+
+```bash
+docker compose up -d --build client
+```
 
 ### Customizing the API endpoint for the client
 
-Set the `VITE_SERVER_URL` build argument when building the client image (defaults to `http://localhost:4000`):
-
-```bash
-docker compose build \
-  --build-arg VITE_SERVER_URL=https://api.example.com client
-docker compose up -d client
-```
-
-The compose file already sets `VITE_SERVER_URL=http://server:4000` so the client talks to the containerized backend on the internal network.
+The compose file now passes `CLIENT_PUBLIC_SERVER_URL` to the client build so that the generated bundle connects directly to the public API endpoint you specify. Update `.env` and rebuild the client whenever the public URL changes.
 
 ### Useful commands
 
