@@ -15,8 +15,8 @@ export const VotingScreen: React.FC<VotingScreenProps> = ({ status, task, voteSt
   const [pendingOption, setPendingOption] = useState<{ id: string; title: string } | null>(null);
 
   return (
-<div className="relative isolate min-h-[100dvh] bg-white px-4 py-10 sm:px-8">
-  <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+    <div className="relative isolate min-h-[100dvh] bg-white px-4 py-10 sm:px-8 overscroll-y-none">
+      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
     <svg
         viewBox="0 0 1024 1024"
         aria-hidden="true"
