@@ -15,8 +15,8 @@ export const VotingScreen: React.FC<VotingScreenProps> = ({ status, task, voteSt
   const [pendingOption, setPendingOption] = useState<{ id: string; title: string } | null>(null);
 
   return (
-    <div className="relative isolate min-h-[100dvh] px-4 py-10 sm:px-8 overscroll-y-none">
-  <div className="absolute inset-x-0 top-6 flex justify-center">
+    <div className="relative isolate z-10 min-h-[100dvh] px-4 py-10 sm:px-8 overscroll-y-none">
+      <div className="absolute inset-x-0 top-6 flex justify-center">
         <StatusBadge status={status} />
       </div>
       <div className="mx-auto flex min-h-[80vh] w-full max-w-5xl flex-col items-center pt-24 text-center">

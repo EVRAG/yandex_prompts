@@ -19,7 +19,6 @@ html, body {
   margin: 0;
   height: 100%;
   overflow-x: hidden;
-  background-color: #ffffff;
   color: #111111;
   overscroll-behavior: none;
 }
