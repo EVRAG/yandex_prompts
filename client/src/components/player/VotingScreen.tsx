@@ -15,8 +15,9 @@ export const VotingScreen: React.FC<VotingScreenProps> = ({ status, task, voteSt
   const [pendingOption, setPendingOption] = useState<{ id: string; title: string } | null>(null);
 
   return (
-    <div className="relative isolate min-h-[100dvh] overflow-hidden bg-white px-4 py-10 sm:px-8">
-      <svg
+<div className="relative isolate min-h-[100dvh] bg-white px-4 py-10 sm:px-8">
+  <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+    <svg
         viewBox="0 0 1024 1024"
         aria-hidden="true"
         className="pointer-events-none absolute bottom-0 left-1/2 -z-10 h-[42rem] w-[42rem] -translate-x-1/2 translate-y-1/2 mask-[radial-gradient(closest-side,white,transparent)]"
@@ -29,7 +30,8 @@ export const VotingScreen: React.FC<VotingScreenProps> = ({ status, task, voteSt
           </radialGradient>
         </defs>
       </svg>
-      <div className="absolute inset-x-0 top-6 flex justify-center">
+  </div>
+  <div className="absolute inset-x-0 top-6 flex justify-center">
         <StatusBadge status={status} />
       </div>
       <div className="mx-auto flex min-h-[80vh] w-full max-w-5xl flex-col items-center pt-24 text-center">

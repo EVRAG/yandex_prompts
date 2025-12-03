@@ -12,7 +12,7 @@ export const VotedScreen: React.FC<VotedScreenProps> = ({ status, task, selected
   const chosen = task.options.find(option => option.id === selectedOptionId);
   
   return (
-    <div className="relative isolate h-[100dvh] overflow-hidden bg-white px-4 sm:px-8 flex flex-col">
+    <div className="relative isolate flex h-[100dvh] flex-col overflow-hidden bg-white px-4 sm:px-8">
       <svg
         viewBox="0 0 1024 1024"
         aria-hidden="true"
