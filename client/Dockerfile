@@ -14,6 +14,7 @@ COPY . .
 ARG VITE_SERVER_URL=http://localhost:4000
 ENV VITE_SERVER_URL=${VITE_SERVER_URL}
 
+RUN npm run build --workspace @prompt-night/shared
 RUN npm run build --workspace client
 
 FROM nginx:1.27-alpine AS runner
