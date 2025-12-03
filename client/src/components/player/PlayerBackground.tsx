@@ -4,7 +4,7 @@ export const PlayerBackground: React.FC = () => {
   return (
     <div className="fixed inset-0 z-0 overflow-hidden bg-white">
       <img
-        src="/bg.jpg"
+        src="https://storage.yandexcloud.net/voting-ett/bg.jpg"
         alt=""
         className="absolute inset-0 h-full w-full object-cover object-bottom"
       />
