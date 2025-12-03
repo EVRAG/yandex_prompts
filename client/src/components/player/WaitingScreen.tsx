@@ -7,7 +7,7 @@ interface WaitingScreenProps {
 
 export const WaitingScreen: React.FC<WaitingScreenProps> = ({ status }) => {
   return (
-    <div className="relative isolate flex min-h-screen flex-col items-center justify-center overflow-hidden bg-white px-6 py-24 sm:py-32 lg:px-8">
+    <div className="relative isolate flex h-[100dvh] flex-col items-center justify-center overflow-hidden bg-white px-6 py-12 sm:py-32 lg:px-8">
       <div className="absolute inset-x-0 top-6 flex justify-center">
         <StatusBadge status={status} />
       </div>

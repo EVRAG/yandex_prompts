@@ -12,7 +12,7 @@ export const VotedScreen: React.FC<VotedScreenProps> = ({ status, task, selected
   const chosen = task.options.find(option => option.id === selectedOptionId);
   
   return (
-    <div className="relative isolate min-h-screen overflow-hidden bg-white px-4 py-10 sm:px-8">
+    <div className="relative isolate h-[100dvh] overflow-hidden bg-white px-4 sm:px-8 flex flex-col">
       <svg
         viewBox="0 0 1024 1024"
         aria-hidden="true"
@@ -29,7 +29,7 @@ export const VotedScreen: React.FC<VotedScreenProps> = ({ status, task, selected
       <div className="absolute inset-x-0 top-6 flex justify-center">
         <StatusBadge status={status} />
       </div>
-      <div className="mx-auto flex min-h-[80vh] w-full max-w-5xl flex-col items-center justify-center pt-24 text-center">
+      <div className="mx-auto flex flex-1 w-full max-w-5xl flex-col items-center justify-center text-center pb-10">
           <h2 className="text-4xl font-semibold tracking-tight text-gray-900 sm:text-5xl">
             Спасибо за ваш голос!
           </h2>
