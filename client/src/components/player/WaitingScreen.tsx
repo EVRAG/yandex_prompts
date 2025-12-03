@@ -7,7 +7,7 @@ interface WaitingScreenProps {
 
 export const WaitingScreen: React.FC<WaitingScreenProps> = ({ status }) => {
   return (
-    <div className="relative isolate flex h-[100dvh] flex-col items-center justify-center overflow-hidden bg-white px-6 py-12 sm:py-32 lg:px-8">
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center overflow-hidden px-6 py-12 sm:py-32 lg:px-8 overscroll-none">
       <div className="absolute inset-x-0 top-6 flex justify-center">
         <StatusBadge status={status} />
       </div>
@@ -19,19 +19,6 @@ export const WaitingScreen: React.FC<WaitingScreenProps> = ({ status }) => {
           Следите за экраном — как только ведущий запустит голосование, здесь появятся варианты для выбора.
         </p>
       </div>
-      <svg
-        viewBox="0 0 1024 1024"
-        aria-hidden="true"
-        className="pointer-events-none absolute bottom-0 left-1/2 -z-10 h-[28rem] w-[28rem] -translate-x-1/2 translate-y-1/2 mask-[radial-gradient(closest-side,white,transparent)]"
-      >
-        <circle r="512" cx="512" cy="512" fill="url(#railways-waiting-gradient)" fillOpacity="0.7" />
-        <defs>
-          <radialGradient id="railways-waiting-gradient">
-            <stop stopColor="#7775D6" />
-            <stop offset="1" stopColor="#E935C1" />
-          </radialGradient>
-        </defs>
-      </svg>
     </div>
   );
 };

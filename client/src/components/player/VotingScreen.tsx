@@ -15,22 +15,7 @@ export const VotingScreen: React.FC<VotingScreenProps> = ({ status, task, voteSt
   const [pendingOption, setPendingOption] = useState<{ id: string; title: string } | null>(null);
 
   return (
-    <div className="relative isolate min-h-[100dvh] bg-white px-4 py-10 sm:px-8 overscroll-y-none">
-      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-    <svg
-        viewBox="0 0 1024 1024"
-        aria-hidden="true"
-        className="pointer-events-none absolute bottom-0 left-1/2 -z-10 h-[42rem] w-[42rem] -translate-x-1/2 translate-y-1/2 mask-[radial-gradient(closest-side,white,transparent)]"
-      >
-        <circle r="512" cx="512" cy="512" fill="url(#railways-vote-gradient)" fillOpacity="0.75" />
-        <defs>
-          <radialGradient id="railways-vote-gradient">
-            <stop stopColor="#7775D6" />
-            <stop offset="1" stopColor="#E935C1" />
-          </radialGradient>
-        </defs>
-      </svg>
-  </div>
+    <div className="relative isolate min-h-[100dvh] px-4 py-10 sm:px-8 overscroll-y-none">
   <div className="absolute inset-x-0 top-6 flex justify-center">
         <StatusBadge status={status} />
       </div>

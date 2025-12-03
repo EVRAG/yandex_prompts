@@ -7,20 +7,7 @@ interface CollectingScreenProps {
 
 export const CollectingScreen: React.FC<CollectingScreenProps> = ({ status }) => {
   return (
-    <div className="relative isolate flex h-[100dvh] flex-col overflow-hidden bg-white px-4 sm:px-8">
-       <svg
-        viewBox="0 0 1024 1024"
-        aria-hidden="true"
-        className="pointer-events-none absolute bottom-0 left-1/2 -z-10 h-[42rem] w-[42rem] -translate-x-1/2 translate-y-1/2 mask-[radial-gradient(closest-side,white,transparent)]"
-      >
-        <circle r="512" cx="512" cy="512" fill="url(#railways-collecting-gradient)" fillOpacity="0.75" />
-        <defs>
-          <radialGradient id="railways-collecting-gradient">
-            <stop stopColor="#7775D6" />
-            <stop offset="1" stopColor="#E935C1" />
-          </radialGradient>
-        </defs>
-      </svg>
+    <div className="fixed inset-0 z-50 flex flex-col overflow-hidden px-4 sm:px-8 overscroll-none">
       <div className="absolute inset-x-0 top-6 flex justify-center">
         <StatusBadge status={status} />
       </div>
