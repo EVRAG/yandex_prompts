@@ -1,34 +1,33 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { io, type Socket } from 'socket.io-client';
-import type { GameConfig } from '@prompt-night/shared';
-import type { AdminSnapshot, StageTarget } from '../types/realtime';
+import type { AdminVotingSnapshot, VotingPhase, VotingTask } from '@prompt-night/shared';
+import type { ConnectionStatus } from '../types/realtime';
 import { SERVER_URL } from '../lib/constants';
-import { fetchAdminSnapshot, fetchGameConfig } from '../lib/api';
+import { fetchAdminSnapshot, fetchVotingTask } from '../lib/api';
 
-type AdminSocket = Socket<ServerToClientEvents, ClientToServerEvents>;
-
-interface ServerToClientEvents {
-  'state:update': (snapshot: AdminSnapshot) => void;
-  'config:update': (config: GameConfig) => void;
+interface AdminServerEvents {
+  'state:update': (snapshot: AdminVotingSnapshot) => void;
+  'config:update': (task: VotingTask) => void;
   'admin:error': (payload: { message: string }) => void;
 }
 
-interface ClientToServerEvents {
-  'admin:set-stage': (payload: { target: StageTarget; stageId: string }) => void;
-  'admin:update-score': (payload: { playerId: string; score: number }) => void;
+interface AdminClientEvents {
+  'admin:set-phase': (payload: { phase: VotingPhase }) => void;
   'admin:sync': () => void;
 }
 
+type AdminSocket = Socket<AdminServerEvents, AdminClientEvents>;
+
 export function useAdminRealtime() {
   const socketRef = useRef<AdminSocket | null>(null);
-  const [snapshot, setSnapshot] = useState<AdminSnapshot | null>(null);
-  const [config, setConfig] = useState<GameConfig | null>(null);
-  const [status, setStatus] = useState<'connecting' | 'online' | 'error'>('connecting');
+  const [snapshot, setSnapshot] = useState<AdminVotingSnapshot | null>(null);
+  const [task, setTask] = useState<VotingTask | null>(null);
+  const [status, setStatus] = useState<ConnectionStatus>('connecting');
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchGameConfig()
-      .then(setConfig)
+    fetchVotingTask()
+      .then(setTask)
       .catch(err => setError(err instanceof Error ? err.message : String(err)));
     fetchAdminSnapshot()
       .then(setSnapshot)
@@ -42,11 +41,6 @@ export function useAdminRealtime() {
     });
     socketRef.current = socket;
 
-    const handleError = (message: string) => {
-      setStatus('error');
-      setError(message);
-    };
-
     socket.on('connect', () => {
       setStatus('online');
       setError(null);
@@ -55,16 +49,18 @@ export function useAdminRealtime() {
       setStatus('connecting');
     });
     socket.on('connect_error', err => {
-      handleError(err.message);
+      setStatus('error');
+      setError(err.message);
     });
     socket.on('state:update', payload => {
       setSnapshot(payload);
     });
     socket.on('config:update', payload => {
-      setConfig(payload);
+      setTask(payload);
     });
     socket.on('admin:error', payload => {
-      handleError(payload.message);
+      setStatus('error');
+      setError(payload.message);
     });
 
     return () => {
@@ -72,9 +68,8 @@ export function useAdminRealtime() {
     };
   }, []);
 
-  const setStage = useCallback((target: StageTarget, stageId: string) => {
-    if (!socketRef.current) return;
-    socketRef.current.emit('admin:set-stage', { target, stageId });
+  const setPhase = useCallback((phase: VotingPhase) => {
+    socketRef.current?.emit('admin:set-phase', { phase });
   }, []);
 
   const refresh = useCallback(() => {
@@ -83,10 +78,10 @@ export function useAdminRealtime() {
 
   return {
     snapshot,
-    config,
+    task,
     status,
     error,
-    setStage,
+    setPhase,
     refresh,
   };
 }

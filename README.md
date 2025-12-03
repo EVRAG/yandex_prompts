@@ -1,291 +1,170 @@
-# Prompt Night – Technical Overview
+# Prompt Night – Railways Voting Game
 
-This monorepo contains a realtime game prototype with three roles:
+This monorepo now powers a single timed voting experience that runs across three surfaces:
 
-1. **Player (mobile client)** – joins via QR, answers questions, sees timers and scoring feedback.
-2. **Display** – large screen that shows QR/announcements/questions/leaderboard.
-3. **Admin** – controls stages, sees players/submissions, manages scores.
+1. **Player (`/`)** – mobile-friendly UI where guests pick exactly one concept image.
+2. **Admin (`/admin`)** – control room used to start/stop the round, monitor the countdown and see vote totals.
+3. **Display (`/display`)** – stage screen that mirrors the current phase for the audience.
 
-The repo is split into workspaces:
+The experience has only three phases:
 
-- `server/` – Node.js + Express + Socket.IO backend.
-- `client/` – Vite + React frontend (all three UIs are routed pages).
-- `shared/` – TypeScript definitions + `gameConfig.json` with the scenario.
+| Phase       | What players see                         | Admin control                         |
+|-------------|------------------------------------------|---------------------------------------|
+| `waiting`   | “Игра скоро начнётся”                    | Prep state, votes reset               |
+| `voting`    | Image grid with “Выбрать” buttons        | 3‑minute timer starts automatically   |
+| `collecting`| “Спасибо, собираем данные”               | Votes locked; totals visible in admin |
 
-Below is a walkthrough of how state, sockets, scoring, and rendering fit together.
+The repository is split into workspaces:
 
----
-
-## 1. Configuration & Shared Types
-
-- `shared/src/gameConfig.json` describes all stages (waiting/info/question/leaderboard).
-- Each **question** now has:
-  - `duration` (seconds) – client timer.
-  - `answerKey` – canonical answer for LLM scoring.
-  - `scoring` – manual vs LLM metadata (currently LLM scoring via OpenAI).
-- `shared/src/types/gameConfig.ts` defines the union types; compiled output is imported by both server and client.
-- Before building server, `npm --prefix shared run build` runs (hooked via `prebuild`).
+- `server/` – Node 20 + Express + Socket.IO backend.
+- `client/` – Vite + React + Tailwind UI bundle.
+- `shared/` – TypeScript definitions and the single voting task definition.
 
 ---
 
-## 2. Backend Architecture (server/)
+## 1. Shared Voting Data (`shared/`)
 
-### 2.1 Express + Socket.IO bootstrap
+- `shared/src/voteOptions.ts` defines:
+  - `votingTask`: id, title, instructions, duration (3 minutes) and the list of concept images.
+  - `VotingPhase`, `VoteResult`, `VotingSnapshot`, `AdminVotingSnapshot` types.
+- `shared/src/index.ts` re-exports these symbols for both server and client workspaces.
+- `npm run build --workspace shared` compiles the package into `dist/`. The server build automatically runs this step via `prebuild`.
 
-`server/src/index.ts`:
-
-- Loads `dotenv/config` so `.env` works (`OPENAI_API_KEY` required for moderation/scoring).
-- Creates HTTP + Socket.IO server (`/health`, `/config`, `/state`, `/admin/stage`, `/moderate/nickname` REST routes).
-
-### 2.2 GameStateManager
-
-`server/src/gameState.ts` keeps the source of truth:
-
-- Tracks players (Map keyed by playerId) with score, online flag, socketId.
-- Tracks submissions (array) storing answer + optional evaluation (score/notes/mode).
-- Stores current stage IDs for clients & display.
-- Provides snapshots:
-  - `getAdminSnapshot()` – includes players, submissions, both stages.
-  - `getPublicSnapshot(target)` – includes stage & leaderboard for clients/display.
-- Methods:
-  - `registerPlayer` – creates or rehydrates players.
-  - `setStage(target, stageId)` – switches stage.
-  - `incrementPlayerScore` – adds delta to player score (used after LLM scoring).
-  - `recordSubmission` – stores answer & evaluation metadata.
-
-### 2.3 WebSocket message flow
-
-There are three socket roles selected via `auth.role`:
-
-| Role     | Rooms joined | On connect emits…                                             |
-|----------|--------------|----------------------------------------------------------------|
-| `admin`  | `admin`      | `config:update`, `state:update` with full AdminSnapshot       |
-| `display`| `display`    | `config:update`, `state:update` (public snapshot for display) |
-| `client` | `client`     | `state:update` (public snapshot for clients)                  |
-
-Common events:
-
-- **Player registers**: client emits `player:register { name?, playerId? }`.
-  - Server validates nickname via `/moderate/nickname` beforehand (client REST call).
-  - Server registers/rehydrates, marks socket data `playerId`, returns `player:registered`.
-
-- **Stage updates**:
-  - Admin: `admin:set-stage { target: 'client'|'display', stageId }`.
-  - Server updates GameStateManager and broadcasts fresh snapshots.
-  - REST backup: `POST /admin/stage`.
-
-- **Admin sync**: `admin:sync` re-sends config + snapshot to requesting admin.
-
-- **Player answer**: `player:submit { stageId, answer }`.
-  - Server validates:
-    - Stage is question & currently active for clients.
-    - Stage has `answerKey`.
-  - Calls `scoreAnswer(...)` (OpenAI responses API with `answerScoringPrompt`).
-  - Adds score via `incrementPlayerScore`.
-  - Records submission with evaluation data.
-  - Emits `player:submitted { id, stageId, createdAt, score, notes }` only to that socket.
-  - Broadcasts updated snapshots (leaderboard, etc.).
-
-- **Admin manual score updates**: `admin:update-score { playerId, score }` (overwrites).
-
-- **Disconnect**: if client socket closes, mark player offline (used for admin view).
-
-### 2.4 REST API quick list
-
-| Endpoint               | Method | Description                                 |
-|------------------------|--------|---------------------------------------------|
-| `/health`              | GET    | basic uptime info                           |
-| `/config`              | GET    | returns `gameConfig`                        |
-| `/state`               | GET    | admin snapshot                             |
-| `/moderate/nickname`   | POST   | { nickname } → { allowed, reason? }        |
-| `/admin/stage`         | POST   | body `{ target, stageId }`, same as socket |
-
-### 2.5 Scoring services
-
-- `server/src/prompts/nicknameModeration.ts` – prompt template for Accept/Reject.
-- `server/src/services/nicknameModeration.ts` – wrapper around `openai.responses.create`.
-- `server/src/prompts/answerScoring.ts` – JSON output prompt for 0-10 score.
-- `server/src/services/answerScoring.ts` – calls OpenAI, parses JSON, returns `{ score, feedback }`.
-
-Potential issue: OpenAI API latency/failure will block scoring. We currently catch errors and send `player:error` if scoring fails.
+To change the game, edit the options array (ids, titles, descriptions, image URLs) or metadata in `votingTask`.
 
 ---
 
-## 3. Frontend Architecture (client/)
+## 2. Backend (`server/`)
 
-### 3.1 Build Stack
+### 2.1 Runtime
 
-- Vite + React + TypeScript.
-- Tailwind CSS v4 (CSS-first). Font `YS Display` served from `public/YS Display`.
-- React Router routes: `/` player, `/admin`, `/display`.
+- `server/src/index.ts`
+  - Sets up Express (`/health`, `/config`, `/state`, `/admin/phase`).
+  - Boots Socket.IO with three logical rooms (`client`, `display`, `admin`).
+  - Broadcasts snapshots whenever votes or phases change.
 
-### 3.2 State & sockets (hooks)
+### 2.2 VotingStateManager
 
-- `usePlayerRealtime.ts`
-  - Manages Socket.IO connection with role `client`.
-  - Persists player info in `localStorage`.
-  - Keeps `submissionStatus` (`idle` → `scoring` → `success`).
-  - Stores `lastSubmission` with score/notes (for UI message).
-  - Maintains `questionRecords` in `localStorage` to lock timer/submission even after reload.
-  - Exposes `register`, `submitAnswer`, `resetPlayer` (currently unused in UI).
+- `server/src/gameState.ts` exports `VotingStateManager`.
+- Responsibilities:
+  - Holds the current `phase`, running timer (`votingEndsAt`), per-socket votes and aggregate counts.
+  - `startVoting()` resets counts, clears previous socket selections, starts a 3‑minute timeout and exposes `timeLeftSeconds`.
+  - `setPhase()` handles manual overrides; switching back to `waiting` clears previous votes.
+  - `castVote(socketId, optionId)` enforces one vote per socket while phase is `voting`.
+  - `getPublicSnapshot()` returns `VotingSnapshot` for players/display.
+  - `getAdminSnapshot()` extends it with `results` and `totalVotes`.
+  - Notifies the server via `onAutoCollect` when the timer expires so that the phase flips to `collecting` and new snapshots are pushed automatically.
 
-- `useAdminRealtime.ts`
+### 2.3 Socket events
+
+| Event              | Emitted by | Payload                                 |
+|--------------------|------------|-----------------------------------------|
+| `config:update`    | server     | `VotingTask` (sent to every role)       |
+| `state:update`     | server     | `VotingSnapshot` or `AdminVotingSnapshot`|
+| `player:vote`      | client     | `{ optionId }`                          |
+| `player:voted`     | server     | `{ optionId }` (echo back on success)   |
+| `player:error`     | server     | `{ message }`                           |
+| `admin:set-phase`  | admin      | `{ phase: 'waiting'|'voting'|'collecting' }` |
+| `admin:error`      | server     | `{ message }`                           |
+| `admin:sync`       | admin      | request fresh snapshots/config          |
+
+### 2.4 REST API
+
+| Endpoint         | Method | Description                                        |
+|------------------|--------|----------------------------------------------------|
+| `/health`        | GET    | `{ status: 'ok', updatedAt }`                      |
+| `/config`        | GET    | `VotingTask` (public)                              |
+| `/state`         | GET    | `AdminVotingSnapshot` (used for initial hydration) |
+| `/admin/phase`   | POST   | `{ phase }` – same validation as the socket event  |
+
+There is intentionally no registration, scoring, or OpenAI dependency anymore.
+
+---
+
+## 3. Frontend (`client/`)
+
+### 3.1 Hooks
+
+- `usePlayerRealtime`
+  - Connects as `client`.
+  - Prefetches task/state via REST, subscribes to socket events, tracks the user’s local selection (stored in `localStorage` under `prompt-night-vote-{taskId}`).
+- `useAdminRealtime`
   - Connects as `admin`.
-  - Receives config + snapshots, exposes `setStage`, `refresh`, `updateScore`.
-  - Handles drag/drop reordering stored in `localStorage`.
-
-- `useDisplayRealtime.ts`
+  - Provides `setPhase` and `refresh` helpers plus live `AdminVotingSnapshot`.
+- `useDisplayRealtime`
   - Connects as `display`.
-  - Adapts admin snapshot into public shape for big-screen rendering.
+  - Only needs `VotingSnapshot` for presentation.
 
-### 3.3 UI Highlights
+### 3.2 Routes
 
-- **PlayerPage**
-  - Yellow theme, timers, answer form, scoring feedback, leaderboard (only when stage is leaderboard).
-  - Timer persists per question via `localStorage` (key `prompt-night-question-progress`).
-  - Submission flow:
-    1. Click “Отправить ответ”.
-    2. Button disabled → “Вычисляем ваш балл…”.
-    3. After server response, shows `Ваш балл: X/10` and notes.
-    4. Re-open page: timer + submission state restored; cannot re-answer.
+- `PlayerPage.tsx`
+  - Shows a simple status header, countdown (during voting), image cards with “Выбрать”, and state-specific messages.
+  - Buttons disable after a vote is accepted (`player:voted`).
+- `AdminPage.tsx`
+  - Buttons for phase switching, timer indicator, live total votes, per-option counts with progress bars.
+- `DisplayPage.tsx`
+  - Large-format layout with messaging per phase and a gallery of the current concepts during voting.
 
-- **AdminPage**
-  - Scenario cards, drag-and-drop ordering, buttons for client/display/both.
-  - Stats cards for top players and latest submissions, with online indicators.
-
-- **DisplayPage**
-  - Yellow background, white cards.
-  - Shows QR column only during registration stage.
-  - Leaderboard renders full-screen only when stage.kind === 'leaderboard'.
-
-### 3.4 Messaging flow summary
-
-```
-Client POST /moderate/nickname ──> server (OpenAI check) ──> allowed?
-Player socket connect ──> gets state snapshot
-Answers -> socket 'player:submit' ──> server scoring ──> 'player:submitted' + state broadcast
-Admin buttons -> 'admin:set-stage' -> state broadcast
-Display sockets automatically refresh on every 'state:update'
-```
+Tailwind v4 + Yandex-style palette are used throughout; no registration form or leaderboard remains.
 
 ---
 
-## 4. Data Persistence
-
-- **State** is in-memory inside `GameStateManager`. Restarting the server resets players, scores, submissions, current stage.
-- **Players & submissions** are not stored in DB. They’re lost on process restart.
-- **Config** is static JSON; any changes require redeploy/restart (and client reload to fetch new config).
-- **LocalStorage** on client stores:
-  - Player ID/name (`prompt-night-player`).
-  - Per-question timer/submission flags (`prompt-night-question-progress`).
-
----
-
-## 5. Environment & Running
-
-### Prerequisites
-
-- Node.js 20+
-- `OPENAI_API_KEY` in `server/.env` (see `.env.example`).
-- Install deps once: `npm install` at repo root (workspaces).
-
-### Development
+## 4. Running Locally
 
 ```
-# terminal 1
-cd server
-npm run dev
+npm install               # installs all workspaces
 
-# terminal 2
-cd client
-npm run dev
-```
-
-- Frontend Vite dev server defaults to `http://localhost:5173`.
-- Backend listens on `http://localhost:4000`.
-- Ensure `VITE_SERVER_URL` env (or default `http://localhost:4000`).
-
-### Production build
-
-```
+# build shared types once (server build does this automatically)
 npm run build --workspace shared
-npm run build --workspace server
-npm run build --workspace client
+
+# dev servers (in separate terminals)
+npm run dev --workspace server   # http://localhost:4000
+npm run dev --workspace client   # http://localhost:5173
 ```
 
-You can then serve `client/dist` behind any static server and run `node server/dist/index.js`.
+`client` relies on `VITE_SERVER_URL` (defaults to `http://localhost:4000`). The Docker setup described in `DEPLOYMENT.md` builds both services and wires the env vars automatically.
 
 ---
 
-## 6. Potential Issues / Next Steps
+## 5. Deployment Highlights
 
-1. **No persistent database**  
-   - All scores/players reset on server restart. Consider adding Redis or Postgres.
-
-2. **OpenAI dependency**  
-   - Nickname moderation & scoring require `OPENAI_API_KEY`. If rate-limited or offline, players cannot register or get scores. Should implement fallback/manual scoring or queue/retry.
-
-3. **LLM latency**  
-   - Scoring waits for OpenAI response per submission; multiple simultaneous answers might cause noticeable delay. Could queue in background and notify via separate event.
-
-4. **Security**  
-   - Admin role is unauthenticated; any socket can claim `role: 'admin'`. Need auth (token or secret).
-   - REST endpoints also lack auth (e.g., `/admin/stage`).
-
-5. **Stage coordination**  
-   - If admin sets client/display to stages that don’t align (e.g., display leaderboard while clients on question), the UI will show exactly what was requested. This is intended, but scenario authors should avoid inconsistent states.
-
-6. **Leaderboard ordering**  
-   - Currently derived from players’ scores sorted descending. Manual updates/LLM scoring could produce ties; no tie-breaker indicator yet.
-
-7. **LocalStorage locking**  
-   - If a player answers but never receives `player:submitted` (network drop), they might stay in “scoring” state until reload. Need a timeout or server-confirmed receipt to clear.
-
-8. **Media hosting**  
-   - `gameConfig.json` references CDN URLs. Ensure CORS/https accessible to both display and player clients.
-
-9. **Scaling**  
-   - Socket.IO rooms are fine for small/medium audiences; for large events consider horizontal scaling with Redis adapter.
-
-10. **Internationalization**  
-   - Most UI text is in Russian; adapt as needed.
+- `.env.example` in the repo root controls published ports and the public API URL for the client build.
+- `Dockerfile.server` and `client/Dockerfile` produce minimal runtime images.
+- `docker-compose.yml` starts both services; set `CLIENT_HOST_PORT=80` and `CLIENT_PUBLIC_SERVER_URL=https://your-domain` to serve through nginx/Caddy with TLS.
+- `DEPLOYMENT.md` contains a step-by-step guide (SSH keys, Docker Compose, HTTPS hardening).
 
 ---
 
-## 7. File Map (key files)
+## 6. Known Limitations & Next Steps
+
+1. **Ephemeral memory store** – restarting the server clears votes. Persisting to Redis/Postgres would allow history and auditing.
+2. **No authentication** – anyone connecting with `role: 'admin'` gains control. Protect via a secret, token, or proxy that gates the socket.
+3. **One vote per socket** – refreshing the page creates a new socket id, so determined users could double vote. Mitigate via device fingerprinting or short-lived session tokens.
+4. **Single round** – the timer always resets to 3 minutes. If multiple rounds are needed, extend `VotingTask` to carry scenarios or allow reloading different option arrays.
+5. **Display-only results** – aggregated counts are only emitted to admins by design. If you want the stage screen to show leaders, broadcast `AdminVotingSnapshot` to `display` as well.
+
+---
+
+## 7. File Map
 
 ```
 /
-├── package.json (workspaces root)
-├── README.md (this file)
-├── client/
-│   ├── src/routes/PlayerPage.tsx
-│   ├── src/routes/AdminPage.tsx
-│   ├── src/routes/DisplayPage.tsx
-│   ├── src/hooks/usePlayerRealtime.ts
-│   ├── src/index.css (Tailwind + theme)
-│   └── public/YS Display/*.ttf
+├── package.json
+├── README.md
+├── DEPLOYMENT.md
+├── shared/
+│   └── src/voteOptions.ts
 ├── server/
-│   ├── src/index.ts (Express + Socket.IO)
-│   ├── src/gameState.ts
-│   ├── src/services/{answerScoring,nicknameModeration}.ts
-│   └── src/prompts/*.ts
-└── shared/
-    ├── src/gameConfig.json
-    ├── src/types/gameConfig.ts
-    └── src/index.ts
+│   ├── src/index.ts
+│   └── src/gameState.ts
+└── client/
+    ├── src/hooks/usePlayerRealtime.ts
+    ├── src/hooks/useAdminRealtime.ts
+    ├── src/hooks/useDisplayRealtime.ts
+    ├── src/routes/PlayerPage.tsx
+    ├── src/routes/AdminPage.tsx
+    └── src/routes/DisplayPage.tsx
 ```
 
----
-
-### Summary
-
-- All stage definitions live in `shared/gameConfig.json`.
-- `GameStateManager` is the single source of truth.
-- Socket.IO keeps admin/display/player clients in sync in realtime.
-- Player answers are moderated/scored via OpenAI before scores are applied.
-- UI is now branded with Yandex-style yellow/black, with `YS Display` font.
-- Known gaps: persistence, auth, OpenAI dependency, queueing, resiliency.
-
-This document should give enough detail to maintain, extend, or containerize the system. Update it as architecture evolves.***
+This setup should give you all the context you need to extend or rebrand the Railways voting experience. Update the shared voting options, tweak the UI, or add persistence/auth as your next iteration. Refer to `DEPLOYMENT.md` for Docker/HTTPS instructions.***
 

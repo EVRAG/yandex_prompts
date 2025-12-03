@@ -1,71 +1,59 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { io, type Socket } from 'socket.io-client';
-import type { QuestionStage } from '@prompt-night/shared';
-import type { PlayerState, PublicSnapshot } from '../types/realtime';
+import type { VotingSnapshot, VotingTask } from '@prompt-night/shared';
+import type { ConnectionStatus } from '../types/realtime';
 import { SERVER_URL } from '../lib/constants';
+import { fetchAdminSnapshot, fetchVotingTask } from '../lib/api';
 
-const PLAYER_STORAGE_KEY = 'prompt-night-player';
-
-type StoredPlayer = Pick<PlayerState, 'id' | 'name'>;
-
-interface PlayerRegisteredPayload extends PlayerState {}
-
-interface PlayerSubmissionPayload {
-  id: string;
-  stageId: string;
-  createdAt: number;
-  score: number;
-  notes?: string;
-}
-
-interface ServerEvents {
-  'state:update': (snapshot: PublicSnapshot) => void;
-  'player:registered': (payload: PlayerRegisteredPayload) => void;
+interface PlayerServerEvents {
+  'state:update': (snapshot: VotingSnapshot) => void;
+  'config:update': (task: VotingTask) => void;
   'player:error': (payload: { message: string }) => void;
-  'player:submitted': (payload: PlayerSubmissionPayload) => void;
+  'player:voted': (payload: { optionId: string }) => void;
 }
 
-interface ClientEvents {
-  'player:register': (payload: { name?: string; playerId?: string }) => void;
-  'player:submit': (payload: { stageId: string; answer: string }) => void;
+interface PlayerClientEvents {
+  'player:vote': (payload: { optionId: string }) => void;
 }
 
-type PlayerSocket = Socket<ServerEvents, ClientEvents>;
+type PlayerSocket = Socket<PlayerServerEvents, PlayerClientEvents>;
 
-const readStoredPlayer = (): StoredPlayer | null => {
-  try {
-    const raw = localStorage.getItem(PLAYER_STORAGE_KEY);
-    if (!raw) return null;
-    return JSON.parse(raw) as StoredPlayer;
-  } catch {
-    return null;
-  }
-};
+type VoteStatus = 'idle' | 'sending' | 'submitted';
 
-const persistPlayer = (player: StoredPlayer) => {
-  localStorage.setItem(PLAYER_STORAGE_KEY, JSON.stringify(player));
-};
-
-const clearStoredPlayer = () => {
-  localStorage.removeItem(PLAYER_STORAGE_KEY);
-};
-
-type QuestionStageWithTimer = QuestionStage & { duration?: number };
+const STORAGE_PREFIX = 'prompt-night-vote-';
+const getStorageKey = (taskId: string) => `${STORAGE_PREFIX}${taskId}`;
 
 export function usePlayerRealtime() {
   const socketRef = useRef<PlayerSocket | null>(null);
-  const storedPlayerRef = useRef<StoredPlayer | null>(readStoredPlayer());
-  const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'online' | 'error'>(
-    'connecting',
-  );
-  const [stageSnapshot, setStageSnapshot] = useState<PublicSnapshot | null>(null);
-  const [player, setPlayer] = useState<PlayerState | null>(null);
+  const taskRef = useRef<VotingTask | null>(null);
+  const [status, setStatus] = useState<ConnectionStatus>('connecting');
+  const [task, setTask] = useState<VotingTask | null>(null);
+  const [snapshot, setSnapshot] = useState<VotingSnapshot | null>(null);
+  const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
+  const [voteStatus, setVoteStatus] = useState<VoteStatus>('idle');
   const [error, setError] = useState<string | null>(null);
-  const [submissionStatus, setSubmissionStatus] = useState<'idle' | 'sending' | 'scoring' | 'success'>(
-    'idle',
-  );
-  const [registering, setRegistering] = useState(false);
-  const [lastSubmission, setLastSubmission] = useState<PlayerSubmissionPayload | null>(null);
+
+  useEffect(() => {
+    fetchVotingTask()
+      .then(payload => {
+        setTask(payload);
+        taskRef.current = payload;
+        try {
+          const stored = localStorage.getItem(getStorageKey(payload.id));
+          if (stored) {
+            setSelectedOptionId(stored);
+            setVoteStatus('submitted');
+          }
+        } catch {
+          /* ignore */
+        }
+      })
+      .catch(err => setError(err instanceof Error ? err.message : String(err)));
+
+    fetchAdminSnapshot()
+      .then(data => setSnapshot(data))
+      .catch(err => setError(err instanceof Error ? err.message : String(err)));
+  }, []);
 
   useEffect(() => {
     const socket: PlayerSocket = io(SERVER_URL, {
@@ -75,49 +63,38 @@ export function usePlayerRealtime() {
     socketRef.current = socket;
 
     socket.on('connect', () => {
-      setConnectionStatus('online');
+      setStatus('online');
       setError(null);
-      const stored = storedPlayerRef.current;
-      if (stored) {
-        socket.emit('player:register', { playerId: stored.id, name: stored.name });
-      }
     });
-
     socket.on('disconnect', () => {
-      setConnectionStatus('connecting');
+      setStatus('connecting');
     });
-
     socket.on('connect_error', err => {
-      setConnectionStatus('error');
+      setStatus('error');
       setError(err.message);
     });
-
     socket.on('state:update', payload => {
-      setStageSnapshot(payload);
-      setPlayer(prev => {
-        if (!prev) return prev;
-        const updated = payload.leaderboard.find(entry => entry.id === prev.id);
-        return updated ? { ...prev, score: updated.score } : prev;
-      });
+      setSnapshot(payload);
     });
-
-    socket.on('player:registered', payload => {
-      setPlayer(payload);
-      const stored: StoredPlayer = { id: payload.id, name: payload.name };
-      storedPlayerRef.current = stored;
-      persistPlayer(stored);
-      setRegistering(false);
+    socket.on('config:update', payload => {
+      setTask(payload);
+      taskRef.current = payload;
     });
-
     socket.on('player:error', payload => {
       setError(payload.message);
-      setRegistering(false);
-      setSubmissionStatus('idle');
+      setVoteStatus('idle');
     });
-
-    socket.on('player:submitted', payload => {
-      setLastSubmission(payload);
-      setSubmissionStatus('success');
+    socket.on('player:voted', payload => {
+      const currentTask = taskRef.current;
+      if (!currentTask) return;
+      try {
+        localStorage.setItem(getStorageKey(currentTask.id), payload.optionId);
+      } catch {
+        /* ignore */
+      }
+      setSelectedOptionId(payload.optionId);
+      setVoteStatus('submitted');
+      setError(null);
     });
 
     return () => {
@@ -125,67 +102,36 @@ export function usePlayerRealtime() {
     };
   }, []);
 
-  const register = useCallback((name: string) => {
-    if (!socketRef.current) return;
-    const trimmed = name.trim();
-    if (!trimmed) {
-      setError('Введите имя');
-      return;
+  useEffect(() => {
+    if (!task || !snapshot) return;
+    if (snapshot.phase === 'voting') return;
+    try {
+      localStorage.removeItem(getStorageKey(task.id));
+    } catch {
+      /* ignore */
     }
-    setRegistering(true);
-    const stored = storedPlayerRef.current;
-    socketRef.current.emit('player:register', {
-      name: trimmed,
-      playerId: stored?.id,
-    });
-  }, []);
+    setSelectedOptionId(null);
+    setVoteStatus('idle');
+  }, [snapshot?.phase, task]);
 
-  const submitAnswer = useCallback(
-    (answer: string) => {
-      if (!socketRef.current || !stageSnapshot) return;
-      const trimmed = answer.trim();
-      if (!trimmed) {
-        setError('Ответ не может быть пустым');
-        return;
-      }
-      setSubmissionStatus('scoring');
-      socketRef.current.emit('player:submit', {
-        stageId: stageSnapshot.stageId,
-        answer: trimmed,
-      });
+  const vote = useCallback(
+    (optionId: string) => {
+      if (!socketRef.current) return;
+      setVoteStatus('sending');
+      socketRef.current.emit('player:vote', { optionId });
     },
-    [stageSnapshot],
+    [],
   );
 
-  const resetPlayer = useCallback(() => {
-    storedPlayerRef.current = null;
-    clearStoredPlayer();
-    setPlayer(null);
-  }, []);
-
-  const stage = stageSnapshot?.stage ?? null;
-  const leaderboard = stageSnapshot?.leaderboard ?? [];
-
-  const questionContent = useMemo(() => {
-    if (!stage || stage.kind !== 'question') return null;
-    return stage as QuestionStageWithTimer;
-  }, [stage]);
-
   return {
-    connectionStatus,
-    stage,
-    stageId: stageSnapshot?.stageId ?? null,
-    leaderboard,
-    player,
-    defaultName: storedPlayerRef.current?.name ?? '',
+    status,
+    task,
+    snapshot,
+    selectedOptionId,
+    voteStatus,
     error,
-    registering,
-    submissionStatus,
-    lastSubmission,
-    register,
-    submitAnswer,
-    resetPlayer,
-    questionContent,
+    vote,
+    clearError: () => setError(null),
   };
 }
 

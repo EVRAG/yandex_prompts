@@ -1,11 +1,10 @@
 # Deployment Guide
 
-This document explains how to run the Yandex Prompt Night stack inside Docker and how to configure SSH keys so the server can pull the repository directly from GitHub.
+This document explains how to deploy the single-round Railways voting game with Docker and how to configure SSH access for pulling the repository on a remote host.
 
 ## Prerequisites
 
 - Docker Engine 25+ and Docker Compose v2.
-- An OpenAI API key (set as `OPENAI_API_KEY` for the server).
 - A domain or public IP to expose the client (optional but recommended).
 
 ## File Overview
@@ -18,11 +17,8 @@ This document explains how to run the Yandex Prompt Night stack inside Docker an
 
 ## 1. Prepare Environment Variables
 
-1. Copy `server/.env.example` to `server/.env`.
-2. Fill in the secrets:
-   - `OPENAI_API_KEY`: required for scoring answers.
-   - `PORT`: optional (defaults to `4000`).
-3. Copy `.env.example` to `.env` (root of the repo) and set compose overrides:
+1. Copy `server/.env.example` to `server/.env` and override `PORT` if you don’t want the default `4000`.
+2. Copy `.env.example` (repo root) to `.env` and set compose overrides:
    - `SERVER_HOST_PORT`: external port that exposes the API (default `4000`).
    - `CLIENT_HOST_PORT`: external port for the nginx SPA (set to `80` if you want the domain root to work without a port).
    - `CLIENT_PUBLIC_SERVER_URL`: public URL that browsers must use to reach the API/WebSocket endpoint (e.g. `https://gse-vote.ru` or `http://gse-vote.ru:4000`).
@@ -47,7 +43,18 @@ docker compose up -d --build client
 
 ### Customizing the API endpoint for the client
 
-The compose file now passes `CLIENT_PUBLIC_SERVER_URL` to the client build so that the generated bundle connects directly to the public API endpoint you specify. Update `.env` and rebuild the client whenever the public URL changes.
+The compose file passes `CLIENT_PUBLIC_SERVER_URL` to the client build so that the generated bundle connects directly to the public API endpoint you specify. Update `.env` and rebuild the client whenever the public URL changes.
+
+### Smoke test
+
+After `docker compose up -d` you should see:
+
+- `http://<host>:4000/health` → `{ "status": "ok", ... }`
+- `http://<host>/` → player UI (“Игра скоро начнётся” by default)
+- `http://<host>/admin` → admin dashboard with phase buttons
+- `http://<host>/display` → stage layout
+
+Switch the phase from the admin panel to ensure the other screens react in real time.
 
 ### Useful commands
 
@@ -132,6 +139,6 @@ Ensure the SSH key is readable only by the current user (`chmod 600 ~/.ssh/promp
 ## 5. Next Steps
 
 - Configure a reverse proxy (e.g. Traefik, Caddy, or nginx) if you need HTTPS termination in front of the `client` container.
-- Add monitoring/health checks by polling `server:4000/health` and `client`'s `/health`.
-- Use a secrets manager (1Password, Doppler, AWS SSM, etc.) for `OPENAI_API_KEY` instead of storing it in `.env`.
+- Add monitoring/health checks by polling `server:4000/health`.
+- Keep `.env` files out of version control and rotate SSH keys if the host changes.
 

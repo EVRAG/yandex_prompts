@@ -1,355 +1,176 @@
-import type { GameStage, QuestionStage } from '@prompt-night/shared';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import type { VotingPhase } from '@prompt-night/shared';
+import { useEffect, useMemo, useState } from 'react';
 import { useAdminRealtime } from '../hooks/useAdminRealtime';
-import type { StageTarget } from '../types/realtime';
 
-type QuestionStageWithTimer = QuestionStage & { duration?: number };
-const isQuestionStage = (stage: GameStage): stage is QuestionStageWithTimer =>
-  stage.kind === 'question';
+import { StatusBadge } from '../components/StatusBadge';
 
-const statusStyles: Record<'connecting' | 'online' | 'error', string> = {
-  connecting: 'bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-600/20',
-  online: 'bg-yandex-green-50 text-yandex-green-700 ring-1 ring-inset ring-yandex-green-700/20',
-  error: 'bg-rose-50 text-rose-700 ring-1 ring-inset ring-rose-600/20',
+const phaseLabels: Record<VotingPhase, string> = {
+  waiting: 'Ожидание',
+  voting: 'Голосование',
+  collecting: 'Сбор данных',
 };
 
-const SCENARIO_STORAGE_KEY = 'prompt-night-scenario';
-
-const kindLabel: Record<GameStage['kind'], string> = {
-  question: 'Раунд / Вопрос',
-  waiting: 'Экран ожидания',
-  info: 'Информационный экран',
-  leaderboard: 'Таблица лидеров',
-};
-
-const kindBadgeStyles: Record<GameStage['kind'], string> = {
-  question: 'bg-yandex-green-50 text-yandex-green-700 ring-yandex-green-700/20',
-  waiting: 'bg-gray-50 text-gray-700 ring-gray-600/20',
-  info: 'bg-gray-50 text-gray-700 ring-gray-600/20',
-  leaderboard: 'bg-gray-50 text-gray-700 ring-gray-600/20',
-};
-
-const formatTime = (value: number) =>
-  new Intl.DateTimeFormat('ru-RU', {
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-  }).format(value);
-
-const readScenario = (baseIds: string[]) => {
-  if (typeof window === 'undefined') return baseIds;
-  try {
-    const stored = localStorage.getItem(SCENARIO_STORAGE_KEY);
-    if (!stored) return baseIds;
-    const parsed = JSON.parse(stored) as string[];
-    const filtered = parsed.filter(id => baseIds.includes(id));
-    const missing = baseIds.filter(id => !filtered.includes(id));
-    return [...filtered, ...missing];
-  } catch {
-    return baseIds;
-  }
+const formatTime = (seconds: number | null) => {
+  if (seconds === null) return '—';
+  const m = Math.floor(seconds / 60)
+    .toString()
+    .padStart(2, '0');
+  const s = Math.max(0, seconds % 60)
+    .toString()
+    .padStart(2, '0');
+  return `${m}:${s}`;
 };
 
 export default function AdminPage() {
-  const { config, snapshot, status, error, setStage, refresh } = useAdminRealtime();
-  const [scenarioOrder, setScenarioOrder] = useState<string[]>([]);
-  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const { snapshot, task, status, error, setPhase, refresh } = useAdminRealtime();
+  const phase = snapshot?.phase ?? 'waiting';
+  const [timeLeft, setTimeLeft] = useState<number | null>(snapshot?.timeLeftSeconds ?? null);
 
   useEffect(() => {
-    if (!config) return;
-    const ids = config.stages.map(stage => stage.id);
-    setScenarioOrder(prev => {
-      if (!prev.length) return readScenario(ids);
-      const filtered = prev.filter(id => ids.includes(id));
-      const missing = ids.filter(id => !filtered.includes(id));
-      const next = [...filtered, ...missing];
-      localStorage.setItem(SCENARIO_STORAGE_KEY, JSON.stringify(next));
-      return next;
+    if (!snapshot || snapshot.phase !== 'voting' || !snapshot.votingEndsAt) {
+      setTimeLeft(null);
+      return;
+    }
+    const tick = () => {
+      setTimeLeft(Math.max(0, Math.ceil((snapshot.votingEndsAt! - Date.now()) / 1000)));
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [snapshot?.phase, snapshot?.votingEndsAt]);
+
+  const results = useMemo(() => {
+    if (!task) return [];
+    const counts = snapshot?.results ?? [];
+        return task.options.map(option => {
+      const aggregated = counts.find(result => result.optionId === option.id);
+      return {
+        ...option,
+        count: aggregated?.count ?? 0,
+        percentage: aggregated?.percentage ?? 0,
+      };
     });
-  }, [config]);
-
-  const stageById = useMemo(() => {
-    if (!config) return new Map<string, GameStage>();
-    return new Map(config.stages.map(stage => [stage.id, stage]));
-  }, [config]);
-
-  const orderedStages = useMemo(() => {
-    if (!config) return [];
-    const map = new Map(config.stages.map(stage => [stage.id, stage]));
-    return scenarioOrder.map(id => map.get(id)).filter(Boolean) as GameStage[];
-  }, [config, scenarioOrder]);
-
-  const players = useMemo(() => {
-    if (!snapshot) return [];
-    return [...snapshot.players].sort((a, b) => b.score - a.score || a.joinedAt - b.joinedAt);
-  }, [snapshot]);
-
-  const onlineCount = players.filter(player => player.isOnline).length;
-
-  const playerMap = useMemo(() => {
-    if (!snapshot) return new Map<string, string>();
-    return new Map(snapshot.players.map(player => [player.id, player.name]));
-  }, [snapshot]);
-
-  const recentSubmissions = useMemo(() => {
-    if (!snapshot) return [];
-    return snapshot.submissions.slice(-8).reverse();
-  }, [snapshot]);
-
-  const reorderScenario = useCallback((fromId: string, toId: string) => {
-    setScenarioOrder(prev => {
-      const next = [...prev];
-      const fromIndex = next.indexOf(fromId);
-      const toIndex = next.indexOf(toId);
-      if (fromIndex === -1 || toIndex === -1) return prev;
-      next.splice(fromIndex, 1);
-      next.splice(toIndex, 0, fromId);
-      localStorage.setItem(SCENARIO_STORAGE_KEY, JSON.stringify(next));
-      return next;
-    });
-  }, []);
-
-  const handleDragStart = (stageId: string) => setDraggingId(stageId);
-  const handleDragEnter = (stageId: string) => {
-    if (!draggingId || draggingId === stageId) return;
-    reorderScenario(draggingId, stageId);
-  };
-  const handleDragEnd = () => setDraggingId(null);
-
-  const handleStage = (target: StageTarget, stageId: string) => {
-    setStage(target, stageId);
-  };
-
-  const handleStageBoth = (stageId: string) => {
-    setStage('client', stageId);
-    setStage('display', stageId);
-  };
+  }, [snapshot?.results, task]);
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900 font-sans pb-20">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
-        <header className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
-                {config?.metadata.eventName ?? 'Админ-панель'}
-              </h1>
-              <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset ${statusStyles[status]}`}>
-                {status === 'online' ? 'Online' : status === 'connecting' ? 'Connecting' : 'Error'}
-              </span>
+    <div className="min-h-screen bg-gray-50 px-4 py-6 sm:px-10 sm:py-8">
+      <div className="mx-auto max-w-6xl space-y-6">
+        <header className="rounded-3xl bg-white px-6 py-5 shadow-lg">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm uppercase tracking-[0.3em] text-gray-500">Prompt Night · Admin</p>
+              <p className="text-3xl font-semibold text-gray-900">
+                {phase === 'voting'
+                  ? 'Голосование запущено'
+                  : phase === 'collecting'
+                    ? 'Собираем результаты'
+                    : 'Команда готова к старту'}
+              </p>
+              <p className="mt-1 text-base text-gray-600">
+                {phase === 'voting'
+                  ? 'Следите за таймером и статистикой по вариантам.'
+                  : phase === 'collecting'
+                    ? 'Закройте раунд, когда будете готовы объявить победителя.'
+                    : 'Запустите голосование, когда участники готовы.'}
+              </p>
             </div>
-            <p className="mt-1 text-sm text-gray-500">
-              {config?.metadata.eventDate ?? 'Дата не задана'} · Игроков: {players.length} ({onlineCount} online)
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={refresh}
-              className="text-sm font-semibold text-indigo-600 hover:text-indigo-500"
-            >
-              Обновить
-            </button>
+            <div className="flex items-center gap-3">
+              <StatusBadge status={status} />
+              <button
+                className="rounded-full border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:border-gray-400"
+                onClick={refresh}
+              >
+                Синхронизировать
+              </button>
+            </div>
           </div>
         </header>
 
         {error && (
-          <div className="mb-6 rounded-md bg-red-50 p-4">
-            <div className="flex">
-              <div className="ml-3">
-                <h3 className="text-sm font-medium text-red-800">Ошибка соединения</h3>
-                <div className="mt-2 text-sm text-red-700">
-                  <p>{error}</p>
-                </div>
-              </div>
-            </div>
+          <div className="rounded-3xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+            {error}
           </div>
         )}
 
-        <div className="flex flex-col gap-8">
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-gray-900">Сценарий</h2>
-              <div className="text-xs text-gray-500">
-                Клиент: <span className="font-medium text-gray-900">{snapshot?.clientStage?.label ?? '—'}</span> · 
-                Экран: <span className="font-medium text-gray-900">{snapshot?.displayStage?.label ?? '—'}</span>
-              </div>
+        <section className="rounded-3xl bg-white p-6 shadow-lg">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="text-sm uppercase tracking-[0.3em] text-gray-500">Этап</p>
+              <p className="text-2xl font-semibold text-gray-900">{phaseLabels[phase]}</p>
+              <p className="text-sm text-gray-500">
+                {phase === 'voting'
+                  ? `Осталось ${formatTime(timeLeft)}`
+                  : phase === 'collecting'
+                    ? 'Голоса закрыты, можно объявлять результаты'
+                    : 'Все участники видят экран ожидания'}
+              </p>
             </div>
-
-            <ul role="list" className="grid grid-cols-1 gap-6">
-              {orderedStages.map((stage, index) => {
-                const isClientActive = snapshot?.clientStageId === stage.id;
-                const isDisplayActive = snapshot?.displayStageId === stage.id;
-                const isActive = isClientActive || isDisplayActive;
-                
-                return (
-                  <li
-                    key={stage.id}
-                    draggable
-                    onDragStart={() => handleDragStart(stage.id)}
-                    onDragEnter={() => handleDragEnter(stage.id)}
-                    onDragEnd={handleDragEnd}
-                    onDragOver={e => e.preventDefault()}
-                    className={`col-span-1 divide-y divide-gray-200 rounded-lg bg-white shadow-sm transition-all ${
-                      isActive ? 'ring-2 ring-yandex-green' : 'ring-1 ring-gray-900/5'
-                    } ${draggingId === stage.id ? 'scale-[1.02] shadow-lg z-10' : ''}`}
-                  >
-                    <div className="flex w-full items-start justify-between space-x-6 p-6">
-                      <div className="flex-1 truncate">
-                        <div className="flex items-center space-x-3">
-                          <h3 className="truncate text-sm font-medium text-gray-900">{stage.label}</h3>
-                          <span className={`inline-flex shrink-0 items-center rounded-full px-1.5 py-0.5 text-xs font-medium ring-1 ring-inset ${kindBadgeStyles[stage.kind]}`}>
-                            {kindLabel[stage.kind]}
-                          </span>
-                          {isClientActive && (
-                            <span className="inline-flex shrink-0 items-center rounded-full bg-yandex-green-50 px-1.5 py-0.5 text-xs font-medium text-yandex-green-700 ring-1 ring-inset ring-yandex-green-700/20">
-                              Клиент
-                            </span>
-                          )}
-                          {isDisplayActive && (
-                            <span className="inline-flex shrink-0 items-center rounded-full bg-sky-50 px-1.5 py-0.5 text-xs font-medium text-sky-700 ring-1 ring-inset ring-sky-600/20">
-                              Экран
-                            </span>
-                          )}
-                        </div>
-                        <p className="mt-1 truncate text-sm text-gray-500">{stage.description || 'Нет описания'}</p>
-                        {isQuestionStage(stage) && (
-                          <div className="mt-2 text-sm text-gray-700 bg-gray-50 p-2 rounded-md border border-gray-100 whitespace-normal">
-                            <p className="font-medium">{stage.content.prompt}</p>
-                            {stage.duration && (
-                              <p className="text-xs text-gray-500 mt-1">⏱ {stage.duration}s</p>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-100 text-sm font-bold text-gray-500">
-                        {index + 1}
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <div className="-mt-px flex divide-x divide-gray-200">
-                        <div className="flex w-0 flex-1">
-                          <button
-                            onClick={() => handleStageBoth(stage.id)}
-                            className={`relative -mr-px inline-flex w-0 flex-1 items-center justify-center gap-x-2 rounded-bl-lg border border-transparent py-4 text-sm font-semibold focus:z-10 ${
-                              isClientActive && isDisplayActive
-                                ? 'bg-yandex-green-50 text-yandex-green-700'
-                                : 'text-gray-900 hover:bg-gray-50'
-                            }`}
-                          >
-                            <span className={isClientActive && isDisplayActive ? 'text-yandex-green-700' : 'text-yandex-green-700'}>
-                              Везде
-                            </span>
-                          </button>
-                        </div>
-                        <div className="-ml-px flex w-0 flex-1">
-                          <button
-                            onClick={() => handleStage('client', stage.id)}
-                            className={`relative inline-flex w-0 flex-1 items-center justify-center gap-x-2 border border-transparent py-4 text-sm font-semibold focus:z-10 ${
-                              isClientActive 
-                                ? 'bg-yandex-green-50 text-yandex-green-700' 
-                                : 'text-gray-900 hover:bg-gray-50'
-                            }`}
-                          >
-                            Клиент
-                          </button>
-                        </div>
-                        <div className="-ml-px flex w-0 flex-1">
-                          <button
-                            onClick={() => handleStage('display', stage.id)}
-                            className={`relative inline-flex w-0 flex-1 items-center justify-center gap-x-2 rounded-br-lg border border-transparent py-4 text-sm font-semibold focus:z-10 ${
-                              isDisplayActive
-                                ? 'bg-yandex-green-50 text-yandex-green-700'
-                                : 'text-gray-900 hover:bg-gray-50'
-                            }`}
-                          >
-                            Экран
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </li>
-                );
-              })}
-              
-              {orderedStages.length === 0 && (
-                <li className="col-span-1 rounded-lg bg-white p-12 text-center shadow-sm ring-1 ring-gray-900/5">
-                  <p className="text-sm text-gray-500">Сценарий пуст</p>
-                </li>
-              )}
-            </ul>
-          </div>
-
-          {/* Stats & Feeds Row */}
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-            {/* Players Card */}
-            <div className="overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-gray-900/5">
-              <div className="border-b border-gray-200 bg-gray-50 px-4 py-4">
-                <h3 className="text-base font-semibold leading-6 text-gray-900">Топ игроков</h3>
-              </div>
-              <ul role="list" className="divide-y divide-gray-200 max-h-96 overflow-y-auto">
-                {players.slice(0, 8).map((player) => (
-                  <li key={player.id} className="flex justify-between gap-x-6 px-4 py-4 hover:bg-gray-50">
-                    <div className="flex min-w-0 gap-x-4">
-                      <div className="min-w-0 flex-auto">
-                        <p className="text-sm font-semibold leading-6 text-gray-900">{player.name}</p>
-                        <p className="mt-1 truncate text-xs leading-5 text-gray-500">
-                          {player.isOnline ? 'Online' : `Last seen ${formatTime(player.lastActive)}`}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="hidden shrink-0 sm:flex sm:flex-col sm:items-end">
-                      <p className="text-sm leading-6 text-gray-900 font-bold">{player.score}</p>
-                      {player.isOnline ? (
-                        <div className="mt-1 flex items-center gap-x-1.5">
-                          <div className="flex-none rounded-full bg-yandex-green p-1">
-                            <div className="h-1.5 w-1.5 rounded-full bg-white" />
-                          </div>
-                          <p className="text-xs leading-5 text-gray-500">Online</p>
-                        </div>
-                      ) : (
-                        <p className="mt-1 text-xs leading-5 text-gray-500">Offline</p>
-                      )}
-                    </div>
-                  </li>
-                ))}
-                {players.length === 0 && (
-                  <li className="px-4 py-8 text-center text-sm text-gray-500">Игроков пока нет</li>
-                )}
-              </ul>
-            </div>
-
-            {/* Activity Feed */}
-            <div className="overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-gray-900/5">
-              <div className="border-b border-gray-200 bg-gray-50 px-4 py-4">
-                <h3 className="text-base font-semibold leading-6 text-gray-900">Последние ответы</h3>
-              </div>
-              <ul role="list" className="divide-y divide-gray-200 max-h-96 overflow-y-auto">
-                {recentSubmissions.map((item) => {
-                  const playerName = playerMap.get(item.playerId) ?? 'Неизвестно';
-                  const stage = stageById.get(item.stageId);
-                  return (
-                    <li key={item.id} className="px-4 py-4 hover:bg-gray-50">
-                      <div className="flex justify-between gap-x-4 mb-1">
-                        <p className="text-sm font-medium text-gray-900">{playerName}</p>
-                        <p className="text-xs text-gray-500">{formatTime(item.createdAt)}</p>
-                      </div>
-                      <p className="text-sm text-gray-700 line-clamp-2">{item.answer}</p>
-                      {stage && (
-                        <p className="mt-1 text-xs text-indigo-500 font-medium">{stage.label}</p>
-                      )}
-                    </li>
-                  );
-                })}
-                {recentSubmissions.length === 0 && (
-                  <li className="px-4 py-8 text-center text-sm text-gray-500">Ответов пока нет</li>
-                )}
-              </ul>
+            <div className="flex flex-wrap gap-2">
+              {(['waiting', 'voting', 'collecting'] as VotingPhase[]).map(targetPhase => (
+                <button
+                  key={targetPhase}
+                  onClick={() => setPhase(targetPhase)}
+                  className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                    phase === targetPhase
+                      ? 'bg-gray-900 text-white'
+                      : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                  }`}
+                >
+                  {phaseLabels[targetPhase]}
+                </button>
+              ))}
             </div>
           </div>
-        </div>
+        </section>
+
+        <section className="rounded-3xl bg-white p-6 shadow-lg">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm uppercase tracking-[0.3ем] text-gray-500">Статистика</p>
+              <p className="text-2xl font-semibold text-gray-900">Голоса по вариантам</p>
+            </div>
+            <div className="text-sm text-gray-600">
+              Всего голосов:{' '}
+              <span className="font-semibold text-gray-900">{snapshot?.totalVotes ?? 0}</span>
+            </div>
+          </div>
+          {!task ? (
+            <p className="mt-4 text-sm text-gray-500">Загружаем описание задания…</p>
+          ) : (
+            <div className="mt-6 grid gap-4 md:grid-cols-2">
+                  {results.map(option => (
+                    <div
+                      key={option.id}
+                      className="rounded-3xl border border-gray-200 bg-gray-50 p-4 shadow-inner"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-lg font-semibold text-gray-900">{option.title}</p>
+                          {(option.pairNames || option.description) && (
+                            <p className="text-sm text-gray-500">
+                              {option.pairNames ?? option.description}
+                            </p>
+                          )}
+                          {option.pairOrg && (
+                            <p className="text-sm text-gray-400">{option.pairOrg}</p>
+                          )}
+                        </div>
+                        <span className="text-2xl font-bold text-gray-900">{option.count}</span>
+                      </div>
+                      <div className="mt-3 h-3 rounded-full bg-white/80">
+                        <div
+                          className="h-3 rounded-full bg-gray-900 transition-all"
+                          style={{ width: `${option.percentage}%` }}
+                        />
+                      </div>
+                      <p className="mt-2 text-sm text-gray-600">{option.percentage}% от голосов</p>
+                    </div>
+                  ))}
+            </div>
+          )}
+        </section>
       </div>
     </div>
   );
 }
+

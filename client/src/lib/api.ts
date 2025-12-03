@@ -1,5 +1,4 @@
-import type { GameConfig } from '@prompt-night/shared';
-import type { AdminSnapshot } from '../types/realtime';
+import type { AdminVotingSnapshot, VotingTask } from '@prompt-night/shared';
 import { SERVER_URL } from './constants';
 
 async function handleResponse<T>(res: Response): Promise<T> {
@@ -10,18 +9,10 @@ async function handleResponse<T>(res: Response): Promise<T> {
   return res.json() as Promise<T>;
 }
 
-export const fetchGameConfig = () =>
-  fetch(`${SERVER_URL}/config`).then(res => handleResponse<GameConfig>(res));
+export const fetchVotingTask = () =>
+  fetch(`${SERVER_URL}/config`).then(res => handleResponse<VotingTask>(res));
 
 export const fetchAdminSnapshot = () =>
-  fetch(`${SERVER_URL}/state`).then(res => handleResponse<AdminSnapshot>(res));
+  fetch(`${SERVER_URL}/state`).then(res => handleResponse<AdminVotingSnapshot>(res));
 
-export const moderateNickname = (nickname: string) =>
-  fetch(`${SERVER_URL}/moderate/nickname`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ nickname }),
-  }).then(res => handleResponse<{ allowed: boolean; reason?: string }>(res));
-
+export {};
