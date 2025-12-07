@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState, useRef, useCallback } from 'react';
 import { usePlayerRealtime } from '../hooks/usePlayerRealtime';
 import { moderateNickname } from '../lib/api';
-
-const statusColors: Record<'connecting' | 'online' | 'error', string> = {
-  connecting: 'bg-yellow-200 text-black border-yellow-400/60',
-  online: 'bg-emerald-200 text-emerald-900 border-emerald-400/60',
-  error: 'bg-rose-200 text-rose-900 border-rose-400/60',
-};
+import RegistrationScreen from '../components/player/RegistrationScreen';
+import PlayerBackground from '../components/player/PlayerBackground';
+import { StatusBadge } from '../components/StatusBadge';
+import { Button } from '../components/ui/Button';
+import { Card } from '../components/ui/Card';
+import { Badge } from '../components/ui/Badge';
+import { TimerPill } from '../components/ui/TimerPill';
 
 const QUESTION_PROGRESS_KEY = 'prompt-night-question-progress';
 
@@ -44,6 +45,7 @@ export default function PlayerPage() {
     error,
     register,
     submitAnswer,
+    resetPlayer,
     questionContent,
   } = usePlayerRealtime();
 
@@ -192,96 +194,101 @@ export default function PlayerPage() {
   const renderStageContent = () => {
     if (!stage) {
       return (
-        <div className="rounded-3xl border border-black/10 bg-white p-6 text-center text-black/60">
-          Ожидание сигнала от ведущего...
-        </div>
+        <Card className="p-6 text-center text-[#3e2989]/60 font-[family-name:var(--font-sans)]">
+          <p className="text-base font-semibold">Ожидание сигнала от ведущего...</p>
+        </Card>
       );
     }
 
     if (stage.kind === 'waiting') {
       return (
-        <div className="rounded-3xl border border-black/10 bg-white p-6 text-center shadow-sm">
-          <p className="text-lg font-semibold text-black">{stage.message}</p>
-          {stage.cta && <p className="mt-2 text-sm text-black/60">{stage.cta}</p>}
-        </div>
+        <Card className="p-6 text-center font-[family-name:var(--font-sans)]">
+          <p className="text-lg font-semibold text-[#3e2989]">{stage.message}</p>
+          {stage.cta && <p className="mt-2 text-sm text-[#3e2989]/60">{stage.cta}</p>}
+        </Card>
       );
     }
 
     if (stage.kind === 'info') {
       return (
-        <div className="rounded-3xl border border-black/10 bg-white p-6 shadow-sm">
-          <h2 className="text-xl font-semibold text-black">{stage.headline}</h2>
-          <p className="mt-2 text-black/70">{stage.body}</p>
-        </div>
+        <Card className="p-6 font-[family-name:var(--font-sans)]">
+          <h2 className="text-xl font-semibold text-[#3e2989]">{stage.headline}</h2>
+          <p className="mt-2 text-[#3e2989]/70">{stage.body}</p>
+        </Card>
       );
     }
 
     if (stage.kind === 'leaderboard') {
       return (
-        <div className="rounded-3xl border border-black/10 bg-white p-6 text-center shadow-sm">
-          <h2 className="text-xl font-semibold text-black">{stage.label}</h2>
-          <p className="mt-2 text-black/70">Следите за экраном результатов!</p>
-        </div>
+        <Card className="p-6 text-center font-[family-name:var(--font-sans)]">
+          <h2 className="text-xl font-semibold text-[#3e2989]">{stage.label}</h2>
+          <p className="mt-2 text-[#3e2989]/70">Следите за экраном результатов!</p>
+        </Card>
       );
     }
 
     if (isQuestion) {
       return (
         <div className="space-y-4">
-          <div className="rounded-3xl border border-black/10 bg-white p-6 relative overflow-hidden shadow-sm">
-            {timeLeft !== null && (
-              <div className="absolute top-4 right-4 rounded-full bg-black/90 text-yellow-300 px-3 py-1 text-sm font-mono border border-black/70">
-                {timeLeft > 0 ? `${timeLeft}s` : 'Время вышло'}
-              </div>
-            )}
-            <p className="text-xs uppercase tracking-[0.3em] text-black/50">
+          <Card className="p-6 relative overflow-hidden font-[family-name:var(--font-sans)]">
+            {timeLeft !== null && <TimerPill value={timeLeft} className="absolute top-4 right-4" />}
+            <p className="text-xs uppercase tracking-[0.2em] text-[#3e2989]/50">
               Вопрос {questionContent.round}.{questionContent.order}
             </p>
-            <h2 className="mt-2 text-2xl font-semibold text-black">{stage.label}</h2>
-            <p className="mt-4 text-lg text-black/80">{questionContent.content.prompt}</p>
+            <h2 className="mt-2 text-2xl font-semibold text-[#3e2989]">{stage.label}</h2>
+            <p className="mt-4 text-lg text-[#3e2989]/80">{questionContent.content.prompt}</p>
             {questionContent.content.type === 'image' && (
               <img
                 src={questionContent.content.assetUrl}
                 alt={questionContent.content.caption ?? 'Вопрос'}
-                className="mt-4 w-full rounded-2xl border border-black/10 object-cover bg-black/5"
+                className="mt-4 w-full rounded-xl border border-black/5 object-cover bg-black/5"
               />
             )}
             {questionContent.content.type === 'video' && (
               <video
-                className="mt-4 w-full rounded-2xl border border-black/10 bg-black/5"
+                className="mt-4 w-full rounded-xl border border-black/5 bg-black/5"
                 controls
                 autoPlay={questionContent.content.autoplay}
               >
                 <source src={questionContent.content.assetUrl} />
               </video>
             )}
-          </div>
+          </Card>
 
           {isScoring ? (
-            <div className="rounded-3xl border border-black/10 bg-white p-4 text-center shadow">
-              <p className="text-lg font-semibold text-black">Вычисляем ваш балл...</p>
-            </div>
+            <Card className="p-4 text-center">
+              <p className="text-lg font-semibold text-[#3e2989] font-[family-name:var(--font-sans)]">
+                Вычисляем ваш балл...
+              </p>
+            </Card>
           ) : hasSubmitted ? (
-            <div className="rounded-3xl border border-yandex-green-700/30 bg-white p-4 text-center shadow">
-              <p className="text-lg font-semibold text-yandex-green-700">
+            <Card className="p-4 text-center border border-[#4DBE55]/30">
+              <p className="text-lg font-semibold text-[#4DBE55] font-[family-name:var(--font-sans)]">
                 {lastScore !== null ? `Ваш балл: ${lastScore}/10` : 'Ответ принят!'}
               </p>
               {activeSubmission?.notes && (
-                <p className="text-sm text-yandex-green-700/70 mt-1">{activeSubmission.notes}</p>
+                <p className="text-sm text-[#4DBE55]/70 mt-1 font-[family-name:var(--font-sans)]">
+                  {activeSubmission.notes}
+                </p>
               )}
               {!activeSubmission && (
-                <p className="text-sm text-yandex-green-700/70 mt-1">Ждите следующий сигнал от ведущего.</p>
+                <p className="text-sm text-[#4DBE55]/70 mt-1 font-[family-name:var(--font-sans)]">
+                  Ждите следующий сигнал от ведущего.
+                </p>
               )}
-            </div>
+            </Card>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-3 rounded-3xl border border-black/10 bg-white p-4 shadow">
+            <form
+              onSubmit={handleSubmit}
+              className="space-y-3 bg-white rounded-[12px] p-4 font-[family-name:var(--font-sans)]"
+            >
               {questionContent.responseType === 'multiline' ? (
                 <textarea
                   value={answer}
                   onChange={e => setAnswer(e.target.value)}
                   placeholder={answerPlaceholder}
                   disabled={isTimeUp || isScoring}
-                  className="min-h-[140px] w-full rounded-2xl border border-black/10 bg-black/5 p-3 text-black outline-none focus:border-black/40 disabled:opacity-50"
+                  className="min-h-[140px] w-full rounded-xl border border-[#3e2989]/10 bg-[#3e2989]/5 p-3 text-[#3e2989] outline-none focus:border-[#3e2989]/40 disabled:opacity-50 placeholder:text-[#3e2989]/40"
                 />
               ) : (
                 <input
@@ -289,22 +296,18 @@ export default function PlayerPage() {
                   onChange={e => setAnswer(e.target.value)}
                   placeholder={answerPlaceholder}
                   disabled={isTimeUp || isScoring}
-                  className="w-full rounded-2xl border border-black/10 bg-black/5 p-3 text-black outline-none focus:border-black/40 disabled:opacity-50"
+                  className="w-full rounded-xl border border-[#3e2989]/10 bg-[#3e2989]/5 p-3 text-[#3e2989] outline-none focus:border-[#3e2989]/40 disabled:opacity-50 placeholder:text-[#3e2989]/40"
                 />
               )}
 
               {isTimeUp ? (
-                <div className="w-full rounded-2xl bg-rose-100 border border-rose-200 py-3 text-center text-lg font-semibold text-rose-700">
+                <Badge className="w-full justify-center py-3 text-lg" tone="danger">
                   Упс, не успели(
-                </div>
+                </Badge>
               ) : (
-                <button
-                  type="submit"
-                  disabled={isTimeUp || isScoring}
-                  className="w-full rounded-2xl bg-black py-3 text-lg font-semibold text-yellow-300 disabled:cursor-not-allowed disabled:opacity-60 transition-opacity"
-                >
+                <Button type="submit" disabled={isTimeUp || isScoring} size="lg" fullWidth>
                   Отправить ответ
-                </button>
+                </Button>
               )}
             </form>
           )}
@@ -319,87 +322,77 @@ export default function PlayerPage() {
     if (stage?.kind !== 'leaderboard') return null;
     
     return (
-      <div className="rounded-3xl border border-black/10 bg-white p-5 shadow-sm">
-        <h3 className="text-sm uppercase tracking-[0.3em] text-black/50">Топ игроков</h3>
-        <ul className="mt-4 space-y-2 text-black">
+      <Card className="p-5 font-[family-name:var(--font-sans)]">
+        <h3 className="text-sm uppercase tracking-[0.2em] text-[#3e2989]/50">Топ игроков</h3>
+        <ul className="mt-4 space-y-2 text-[#3e2989]">
           {leaderboard.slice(0, 5).map((entry, index) => (
             <li key={entry.id} className="flex items-center justify-between text-sm">
               <div className="flex items-center gap-3 font-medium">
-                <span className="text-xs text-black/50">#{index + 1}</span>
+                <span className="text-xs text-[#3e2989]/50">#{index + 1}</span>
                 <span>{entry.name}</span>
               </div>
               <span className="font-semibold">{entry.score}</span>
             </li>
           ))}
           {leaderboard.length === 0 && (
-            <li className="text-center text-sm text-black/50">Результатов еще нет</li>
+            <li className="text-center text-sm text-[#3e2989]/50">Результатов еще нет</li>
           )}
         </ul>
-      </div>
+      </Card>
     );
   };
 
+  if (!player) {
+    return (
+      <RegistrationScreen
+        name={name}
+        setName={setName}
+        handleRegister={handleRegister}
+        registering={registering}
+        isModerating={isModerating}
+        moderationError={moderationError || error}
+      />
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-[#FFEA00] px-4 py-8 text-black">
-      <div className="mx-auto flex max-w-3xl flex-col gap-6">
-        <header className="flex items-center justify-between rounded-3xl border border-black/10 bg-white/90 p-4 shadow">
-          <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-black/50">Prompt Night</p>
-            <p className="text-sm text-black/70">{player ? 'Добро пожаловать!' : 'Регистрация'}</p>
+    <PlayerBackground>
+      <div className="w-full flex flex-col gap-4">
+        <Card className="flex items-center justify-between p-4 font-[family-name:var(--font-sans)]">
+          <div className="flex items-center gap-3">
+            <div>
+              <p className="text-xs uppercase tracking-[0.2em] text-[#3e2989]/50">Prompt Night</p>
+              <p className="text-sm text-[#3e2989]">Игрок</p>
+            </div>
+            <StatusBadge status={connectionStatus} />
           </div>
-          <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${statusColors[connectionStatus]}`}>
-            {connectionStatus === 'online' && 'Онлайн'}
-            {connectionStatus === 'connecting' && 'Подключаемся'}
-            {connectionStatus === 'error' && 'Ошибка'}
-          </span>
-        </header>
+          <Button variant="ghost" size="md" onClick={resetPlayer}>
+            Выйти
+          </Button>
+        </Card>
 
         {error && (
-          <div className="rounded-3xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
+          <div className="bg-rose-50 rounded-[12px] border border-rose-200 p-4 text-sm text-rose-700 font-[family-name:var(--font-sans)]">
             {error}
           </div>
         )}
 
-        {!player ? (
-          <form onSubmit={handleRegister} className="space-y-4 rounded-3xl border border-black/10 bg-white/90 p-6 shadow">
-            <h1 className="text-2xl font-semibold text-black">Введите имя</h1>
-            <input
-              value={name}
-              onChange={e => setName(e.target.value)}
-              placeholder="Ваш ник"
-              className="w-full rounded-2xl border border-black/10 bg-black/5 p-3 text-black outline-none focus:border-black/40"
-            />
-            {moderationError && (
-              <p className="text-sm text-rose-500">{moderationError}</p>
-            )}
-            <button
-              type="submit"
-              disabled={registering || isModerating}
-              className="w-full rounded-2xl bg-black py-3 text-lg font-semibold text-yellow-300 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {registering || isModerating ? 'Проверяем...' : 'Присоединиться'}
-            </button>
-          </form>
-        ) : (
-          <>
-            <div className="rounded-3xl border border-black/10 bg-white/90 p-5 shadow-sm">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.3em] text-black/60">Игрок</p>
-                  <h2 className="text-2xl font-semibold text-black">{player.name}</h2>
-                </div>
-                <div className="text-right">
-                  <p className="text-xs uppercase tracking-[0.3em] text-black/60">Очки</p>
-                  <p className="text-2xl font-semibold text-black">{player.score}</p>
-                </div>
-              </div>
+        <Card className="p-5 font-[family-name:var(--font-sans)]">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs uppercase tracking-[0.2em] text-[#3e2989]/60">Игрок</p>
+              <h2 className="text-2xl font-semibold text-[#3e2989]">{player.name}</h2>
             </div>
+            <div className="text-right">
+              <p className="text-xs uppercase tracking-[0.2em] text-[#3e2989]/60">Очки</p>
+              <p className="text-2xl font-semibold text-[#3e2989]">{player.score}</p>
+            </div>
+          </div>
+        </Card>
 
-            {renderStageContent()}
-            {renderLeaderboard()}
-          </>
-        )}
+        {renderStageContent()}
+        {renderLeaderboard()}
       </div>
-    </div>
+    </PlayerBackground>
   );
 }

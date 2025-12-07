@@ -80,7 +80,7 @@ Common events:
   - Server validates:
     - Stage is question & currently active for clients.
     - Stage has `answerKey`.
-  - Calls `scoreAnswer(...)` (OpenAI responses API with `answerScoringPrompt`).
+  - Adds job to scoring queue (BullMQ, Redis) → worker calls `scoreAnswer(...)` (OpenAI responses API with `answerScoringPrompt`).
   - Adds score via `incrementPlayerScore`.
   - Records submission with evaluation data.
   - Emits `player:submitted { id, stageId, createdAt, score, notes }` only to that socket.
@@ -94,7 +94,7 @@ Common events:
 
 | Endpoint               | Method | Description                                 |
 |------------------------|--------|---------------------------------------------|
-| `/health`              | GET    | basic uptime info                           |
+| `/health`              | GET    | redis + OpenAI reachability, status ok/degraded |
 | `/config`              | GET    | returns `gameConfig`                        |
 | `/state`               | GET    | admin snapshot                             |
 | `/moderate/nickname`   | POST   | { nickname } → { allowed, reason? }        |
@@ -172,8 +172,8 @@ Display sockets automatically refresh on every 'state:update'
 
 ## 4. Data Persistence
 
-- **State** is in-memory inside `GameStateManager`. Restarting the server resets players, scores, submissions, current stage.
-- **Players & submissions** are not stored in DB. They’re lost on process restart.
+- **State** is persisted to Redis (`STATE_KEY`) with TTL (`STATE_TTL_SECONDS`). On restart, the game rehydrates players, submissions, and current stages from Redis.
+- **Players & submissions** are still ephemeral beyond Redis TTL; no long-term DB yet.
 - **Config** is static JSON; any changes require redeploy/restart (and client reload to fetch new config).
 - **LocalStorage** on client stores:
   - Player ID/name (`prompt-night-player`).
@@ -187,6 +187,13 @@ Display sockets automatically refresh on every 'state:update'
 
 - Node.js 20+
 - `OPENAI_API_KEY` in `server/.env` (see `.env.example`).
+- `REDIS_URL` (e.g. `redis://localhost:6379`) — Socket.IO adapter, state cache, scoring queue.
+- `ADMIN_SECRET` — required for admin sockets and `/admin/stage` REST.
+- Optional tuning:
+  - `STATE_TTL_SECONDS` (default `86400`)
+  - `STATE_KEY` (Redis key name, default `prompt-night:state:v1`)
+  - `SUBMIT_THROTTLE_MS` (default `1000`)
+  - `SCORE_QUEUE_NAME`, `SCORE_TIMEOUT_MS`, `SCORE_WORKERS`
 - Install deps once: `npm install` at repo root (workspaces).
 
 ### Development
@@ -275,6 +282,14 @@ You can then serve `client/dist` behind any static server and run `node server/d
     ├── src/types/gameConfig.ts
     └── src/index.ts
 ```
+
+---
+
+## 8. Load testing
+
+- `loadtest/socketio.yml` — Artillery scenario for 250 concurrent Socket.IO clients (register + submit).
+- Configure via env: `SERVER_URL` (API host) and `STAGE_ID` (question stage id).
+- Run: `npx artillery run loadtest/socketio.yml`.
 
 ---
 

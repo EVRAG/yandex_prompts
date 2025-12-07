@@ -69,6 +69,9 @@ export function usePlayerRealtime() {
     const socket: PlayerSocket = io(SERVER_URL, {
       transports: ['websocket'],
       auth: { role: 'client' },
+      reconnectionAttempts: 5,
+      reconnectionDelay: 500,
+      reconnectionDelayMax: 3000,
     });
     socketRef.current = socket;
 
@@ -83,6 +86,15 @@ export function usePlayerRealtime() {
 
     socket.on('disconnect', () => {
       setConnectionStatus('connecting');
+    });
+
+    socket.io.on('reconnect_attempt', () => {
+      setConnectionStatus('connecting');
+    });
+
+    socket.io.on('reconnect_failed', () => {
+      setConnectionStatus('error');
+      setError('Не удалось переподключиться.');
     });
 
     socket.on('connect_error', err => {
@@ -122,6 +134,15 @@ export function usePlayerRealtime() {
       socket.disconnect();
     };
   }, []);
+
+  useEffect(() => {
+    if (submissionStatus !== 'scoring') return;
+    const timer = setTimeout(() => {
+      setSubmissionStatus('idle');
+      setError('Слишком долгое ожидание оценки. Попробуйте ещё раз.');
+    }, 12_000);
+    return () => clearTimeout(timer);
+  }, [submissionStatus]);
 
   const register = useCallback((name: string) => {
     if (!socketRef.current) return;

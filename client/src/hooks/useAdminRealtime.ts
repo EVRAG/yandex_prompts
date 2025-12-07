@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { io, type Socket } from 'socket.io-client';
 import type { GameConfig } from '@prompt-night/shared';
 import type { AdminSnapshot, StageTarget } from '../types/realtime';
-import { SERVER_URL } from '../lib/constants';
+import { ADMIN_SECRET, SERVER_URL } from '../lib/constants';
 import { fetchAdminSnapshot, fetchGameConfig } from '../lib/api';
 
 type AdminSocket = Socket<ServerToClientEvents, ClientToServerEvents>;
@@ -38,7 +38,8 @@ export function useAdminRealtime() {
   useEffect(() => {
     const socket: AdminSocket = io(SERVER_URL, {
       transports: ['websocket'],
-      auth: { role: 'admin' },
+      auth: { role: 'admin', adminSecret: ADMIN_SECRET || undefined },
+      extraHeaders: ADMIN_SECRET ? { 'x-admin-secret': ADMIN_SECRET } : undefined,
     });
     socketRef.current = socket;
 

@@ -1,0 +1,29 @@
+config:
+  target: "{{ $processEnvironment.SERVER_URL || 'http://localhost:4000' }}"
+  phases:
+    - duration: 60
+      arrivalRate: 50
+      rampTo: 250
+      name: ramp to 250 users
+    - duration: 60
+      arrivalRate: 250
+      name: sustain 250 users
+  engines:
+    socketio: {}
+  processor: "./socketio.processor.js"
+
+scenarios:
+  - name: "player registers and submits"
+    engine: socketio
+    flow:
+      - emit:
+          channel: "player:register"
+          data:
+            name: "{{ nickname }}"
+      - think: 2
+      - emit:
+          channel: "player:submit"
+          data:
+            stageId: "{{ stageId }}"
+            answer: "Автотестовый ответ"
+      - think: 5

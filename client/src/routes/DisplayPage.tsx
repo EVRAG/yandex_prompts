@@ -1,11 +1,7 @@
 import { QRCodeCanvas } from 'qrcode.react';
 import { useDisplayRealtime } from '../hooks/useDisplayRealtime';
-
-const statusBadge: Record<'connecting' | 'online' | 'error', string> = {
-  connecting: 'bg-yellow-200 text-black',
-  online: 'bg-emerald-200 text-emerald-900',
-  error: 'bg-rose-200 text-rose-900',
-};
+import { StatusBadge } from '../components/StatusBadge';
+import { Card } from '../components/ui/Card';
 
 export default function DisplayPage() {
   const { config, snapshot, status, error } = useDisplayRealtime();
@@ -108,17 +104,15 @@ export default function DisplayPage() {
   return (
     <div className="min-h-screen bg-[#FFEA00] px-6 py-8 text-black">
       <div className="mx-auto flex max-w-7xl flex-col gap-6 h-[calc(100vh-4rem)]">
-        <header className="flex items-center justify-between shrink-0 rounded-3xl border border-black/10 bg-white/90 p-6 shadow">
+        <Card className="flex items-center justify-between shrink-0 rounded-3xl border border-black/10 bg-white/90 p-6 shadow">
           <div>
             <p className="text-xs uppercase tracking-[0.4em] text-black/50">Prompt Night</p>
-            <h1 className="text-3xl font-bold text-black">{config?.metadata.eventName ?? 'Display'}</h1>
+            <h1 className="text-3xl font-bold text-black">
+              {config?.metadata.eventName ?? 'Display'}
+            </h1>
           </div>
-          <span className={`rounded-full border px-4 py-1 text-sm font-semibold ${statusBadge[status]}`}>
-            {status === 'online' && 'Онлайн'}
-            {status === 'connecting' && 'Подключение...'}
-            {status === 'error' && 'Ошибка сети'}
-          </span>
-        </header>
+          <StatusBadge status={status} />
+        </Card>
 
         {error && (
           <div className="rounded-3xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">

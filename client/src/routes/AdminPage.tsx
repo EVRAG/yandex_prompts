@@ -2,12 +2,7 @@ import type { GameStage, QuestionStage } from '@prompt-night/shared';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAdminRealtime } from '../hooks/useAdminRealtime';
 import type { StageTarget } from '../types/realtime';
-
-const statusStyles: Record<'connecting' | 'online' | 'error', string> = {
-  connecting: 'bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-600/20',
-  online: 'bg-yandex-green-50 text-yandex-green-700 ring-1 ring-inset ring-yandex-green-700/20',
-  error: 'bg-rose-50 text-rose-700 ring-1 ring-inset ring-rose-600/20',
-};
+import { StatusBadge } from '../components/StatusBadge';
 
 const SCENARIO_STORAGE_KEY = 'prompt-night-scenario';
 
@@ -130,9 +125,7 @@ export default function AdminPage() {
               <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
                 {config?.metadata.eventName ?? 'Админ-панель'}
               </h1>
-              <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset ${statusStyles[status]}`}>
-                {status === 'online' ? 'Online' : status === 'connecting' ? 'Connecting' : 'Error'}
-              </span>
+              <StatusBadge status={status} />
             </div>
             <p className="mt-1 text-sm text-gray-500">
               {config?.metadata.eventDate ?? 'Дата не задана'} · Игроков: {players.length} ({onlineCount} online)

@@ -26,6 +26,14 @@ export interface Submission {
   };
 }
 
+export interface PersistedState {
+  clientStageId: string;
+  displayStageId: string;
+  players: PlayerState[];
+  submissions: Submission[];
+  updatedAt: number;
+}
+
 export interface AdminSnapshot {
   clientStageId: string;
   displayStageId: string;
@@ -51,10 +59,18 @@ export class GameStateManager {
   private readonly players = new Map<string, PlayerState>();
   private readonly submissions: Submission[] = [];
   private updatedAt = Date.now();
+  private readonly persistCallback: ((state: PersistedState) => void) | undefined;
 
-  constructor() {
-    this.clientStageId = this.getDefaultStageId('clients');
-    this.displayStageId = this.getDefaultStageId('display');
+  constructor(initialState?: PersistedState, onChange?: (state: PersistedState) => void) {
+    this.clientStageId = initialState?.clientStageId ?? this.getDefaultStageId('clients');
+    this.displayStageId = initialState?.displayStageId ?? this.getDefaultStageId('display');
+    this.persistCallback = onChange;
+
+    if (initialState) {
+      initialState.players.forEach(player => this.players.set(player.id, player));
+      this.submissions.push(...initialState.submissions);
+      this.updatedAt = initialState.updatedAt ?? Date.now();
+    }
   }
 
   getConfig(): GameConfig {
@@ -76,6 +92,11 @@ export class GameStateManager {
 
   private touch(): void {
     this.updatedAt = Date.now();
+    this.persist();
+  }
+
+  private persist(): void {
+    this.persistCallback?.(this.toPersistedState());
   }
 
   getStageById(stageId: string): GameStage | undefined {
@@ -240,6 +261,16 @@ export class GameStateManager {
     }
 
     return snapshot;
+  }
+
+  toPersistedState(): PersistedState {
+    return {
+      clientStageId: this.clientStageId,
+      displayStageId: this.displayStageId,
+      players: Array.from(this.players.values()),
+      submissions: this.submissions.slice(-500),
+      updatedAt: this.updatedAt,
+    };
   }
 }
 
