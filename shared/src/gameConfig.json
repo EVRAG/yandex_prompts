@@ -1,0 +1,43 @@
+{
+  "stages": [
+    {
+      "id": "registration",
+      "title": "Регистрация",
+      "type": "registration"
+    },
+    {
+      "id": "waiting",
+      "title": "Ожидание",
+      "type": "info"
+    },
+    {
+      "id": "question_1",
+      "title": "Вопрос 1",
+      "type": "question",
+      "questionText": "Как бы вы объяснили бабушке, что такое LLM?",
+      "referenceAnswer": "Это умная программа, которая прочитала весь интернет и умеет продолжать текст.",
+      "timeLimitSeconds": 60
+    },
+    {
+      "id": "question_2",
+      "title": "Вопрос 2",
+      "type": "question",
+      "questionText": "Придумайте слоган для ночных посиделок с нейросетью.",
+      "referenceAnswer": "Бессонница с интеллектом.",
+      "timeLimitSeconds": 60
+    },
+    {
+      "id": "question_3",
+      "title": "Вопрос 3",
+      "type": "question",
+      "questionText": "Что ответит нейросеть на вопрос 'В чем смысл жизни?', если у неё плохое настроение?",
+      "referenceAnswer": "В том, чтобы отвечать на глупые вопросы, пока не перегорят серверы.",
+      "timeLimitSeconds": 60
+    },
+    {
+      "id": "leaderboard",
+      "title": "Результаты",
+      "type": "leaderboard"
+    }
+  ]
+}

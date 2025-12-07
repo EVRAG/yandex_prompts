@@ -1,0 +1,32 @@
+config:
+  target: "{{ $processEnvironment.SERVER_URL || 'http://localhost:4000' }}"
+  phases:
+    - duration: 60
+      arrivalRate: 5
+      rampTo: 20
+      name: "Warm up"
+    - duration: 120
+      arrivalRate: 20
+      name: "Sustained load"
+  engines:
+    socketio:
+      transports: ["websocket"]
+      forceNew: true
+      path: "/socket.io"
+      upgrade: false
+  processor: "./socketio.processor.js"
+
+scenarios:
+  - name: "player registers and submits"
+    engine: socketio
+    flow:
+      - emit:
+          channel: "register"
+          data:
+            name: "{{ nickname }}"
+      - think: 2
+      - emit:
+          channel: "submit"
+          data:
+            answer: "Автотестовый ответ"
+      - think: 5
