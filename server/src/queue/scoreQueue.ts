@@ -24,9 +24,15 @@ export const scoreQueue = new Queue('scoring', { connection });
 // Actually, `addSubmission` pushes to array.
 // I will rewrite `server/src/gameState.ts` to include `updateSubmission` or I will handle it by re-reading state, finding, updating, saving.
 
-// Worker
+// Worker with concurrency control
+// Process up to 10 jobs in parallel to avoid overwhelming YandexGPT API
+// Adjust based on your YandexGPT rate limits (check your plan limits)
 const worker = new Worker('scoring', async (job) => {
-  const { submissionId, questionText, referenceAnswer, participantAnswer } = job.data;
+  const { submissionId, questionText, referenceAnswer, participantAnswer, playerId } = job.data;
+  
+  console.log(`[scoring] Processing submission ${submissionId} for player ${playerId}`);
+  console.log(`[scoring] Question: ${questionText}`);
+  console.log(`[scoring] Participant answer: ${participantAnswer}`);
   
   try {
     const client = getYandexClient();
@@ -37,9 +43,14 @@ const worker = new Worker('scoring', async (job) => {
       .replace('{{reference}}', referenceAnswer)
       .replace('{{answer}}', participantAnswer);
 
+    console.log(`[scoring] Sending request to YandexGPT with model: ${model}`);
+    
     const response = await client.chat.completions.create({
       model,
-      messages: [{ role: 'user', content: prompt }],
+      messages: [
+        { role: 'system', content: 'Ты эксперт по оценке ответов. Всегда отвечай только валидным JSON.' },
+        { role: 'user', content: prompt }
+      ],
       max_tokens: 200,
       temperature: 0.3,
       response_format: { type: 'json_object' }, // If supported, otherwise parse
@@ -62,27 +73,30 @@ const worker = new Worker('scoring', async (job) => {
     const score = Math.min(10, Math.max(0, Number(result.score) || 0));
     const feedback = result.feedback || '';
 
+    console.log(`[scoring] Submission ${submissionId} scored: ${score}/10`);
+    console.log(`[scoring] Feedback: ${feedback}`);
+
     // Update state
-    // We need to access the module scope state in gameState.ts
-    // Since we are in same process (for now), we can import function.
-    // If worker was separate process, we'd need to use Redis to update state.
-    // Given the architecture "Node/TS backend", likely single instance or we need Redis-based state sync.
-    // `gameState.ts` saves to Redis. If we update in memory here, we must ensure we are the only writer or we use Redis locking.
-    // For this simple app, single server instance is assumed.
-    
-    // We need to add `updateSubmission` to gameState.ts
-    const { updateSubmission } = await import('../gameState');
+    const { updateSubmission } = await import('../gameState.js');
     updateSubmission(submissionId, { score, feedback });
     
-    // Update player score
-    // We need submission to know playerId
-    // We passed it in job? Or fetch from state.
-    // updatePlayerScore(playerId, score);
+    // Trigger broadcast via Redis pub/sub (works even if worker is in separate process)
+    // The main process will pick it up and broadcast to all clients
+    redis.publish('state:changed', JSON.stringify({ type: 'score_updated', submissionId }));
     
   } catch (err) {
-    console.error(`Scoring failed for ${submissionId}`, err);
+    console.error(`[scoring] Failed for ${submissionId}:`, err);
+    // Re-throw to mark job as failed (BullMQ will retry based on job options)
+    throw err;
   }
-}, { connection });
+}, { 
+  connection,
+  concurrency: parseInt(process.env.SCORING_CONCURRENCY || '10', 10), // Process 10 jobs in parallel (adjust based on YandexGPT rate limits)
+  limiter: {
+    max: parseInt(process.env.SCORING_RATE_LIMIT || '20', 10), // Max 20 requests
+    duration: 1000, // per second
+  },
+});
 
 worker.on('completed', (job) => {
   console.log(`Job ${job.id} completed`);

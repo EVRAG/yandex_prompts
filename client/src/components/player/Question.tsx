@@ -1,15 +1,22 @@
 import { useState, useEffect } from 'react';
-import { GameStage } from '@prompt-night/shared';
+import type { GameStage } from '@prompt-night/shared';
 
 interface QuestionProps {
   stage: GameStage;
   onSubmit: (answer: string) => void;
+  hasSubmitted?: boolean; // Pass from parent to track submission status
 }
 
-export function Question({ stage, onSubmit }: QuestionProps) {
+export function Question({ stage, onSubmit, hasSubmitted = false }: QuestionProps) {
   const [answer, setAnswer] = useState('');
-  const [submitted, setSubmitted] = useState(false);
+  const [localSubmitted, setLocalSubmitted] = useState(false);
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
+  
+  // Reset local state when stage changes
+  useEffect(() => {
+    setLocalSubmitted(false);
+    setAnswer('');
+  }, [stage.id]);
 
   useEffect(() => {
     if (stage.status === 'active' && stage.startTime && stage.timeLimitSeconds) {
@@ -26,11 +33,14 @@ export function Question({ stage, onSubmit }: QuestionProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (answer.trim()) {
+    if (answer.trim() && !localSubmitted && !hasSubmitted) {
       onSubmit(answer.trim());
-      setSubmitted(true);
+      setLocalSubmitted(true);
     }
   };
+
+  // Check if user has already submitted for this stage
+  const isSubmitted = localSubmitted || hasSubmitted;
 
   if (stage.status === 'locked' || stage.status === 'revealed') {
     return (
@@ -41,7 +51,7 @@ export function Question({ stage, onSubmit }: QuestionProps) {
     );
   }
 
-  if (submitted) {
+  if (isSubmitted) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4 text-center">
         <h2 className="text-xl font-bold mb-4">Ответ принят!</h2>
@@ -67,13 +77,14 @@ export function Question({ stage, onSubmit }: QuestionProps) {
           onChange={(e) => setAnswer(e.target.value)}
           placeholder="Ваш ответ..."
           className="border p-2 rounded text-lg h-32"
+          disabled={isSubmitted}
         />
         <button
           type="submit"
-          disabled={!answer.trim()}
+          disabled={!answer.trim() || isSubmitted}
           className="bg-yandex-green text-white p-2 rounded text-lg font-bold disabled:opacity-50"
         >
-          Отправить
+          {isSubmitted ? 'Отправлено' : 'Отправить'}
         </button>
       </form>
     </div>

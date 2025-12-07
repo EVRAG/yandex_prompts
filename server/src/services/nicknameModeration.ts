@@ -3,6 +3,8 @@ import { getYandexClient, getModelId } from './yandexClient';
 export async function moderateNickname(nickname: string): Promise<{ allowed: boolean; reason?: string }> {
   const client = getYandexClient();
   const model = getModelId();
+  
+  console.log(`[moderation] Using model: ${model}`);
 
   const prompt = `
 Ты модератор на публичном мероприятии. Твоя задача - проверить никнейм участника.

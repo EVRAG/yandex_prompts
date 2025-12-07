@@ -6,11 +6,12 @@ services:
     env_file:
       - .env
     environment:
-      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      - REDIS_URL=redis://redis:6379
     ports:
       - "${SERVER_HOST_PORT:-4000}:4000"
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
     restart: unless-stopped
 
   client:
@@ -33,6 +34,11 @@ services:
     volumes:
       - redis-data:/data
     command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
     restart: unless-stopped
 
 volumes:

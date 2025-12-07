@@ -90,7 +90,7 @@ export function getCurrentStage(): GameStage {
   return {
     ...config,
     status: state.stageStatus,
-    startTime: state.stageStartTime,
+    ...(state.stageStartTime !== undefined && { startTime: state.stageStartTime }),
   };
 }
 
@@ -99,14 +99,17 @@ export function setStage(stageId: string) {
   if (!config) return false;
   
   state.currentStageId = stageId;
-  state.stageStatus = 'active'; // Default to active on switch? Or pending?
-  // Let's say we switch to 'pending' or 'active' depending on type.
-  // For questions, maybe 'active' immediately starts timer?
-  // User said: "admin can switch question 1. Then timer starts."
-  // So maybe switch to 'pending' first, then 'start timer' action makes it 'active'.
-  // But user also said "automatically starts timer".
-  // Let's make it 'active' by default for now and set startTime.
-  state.stageStartTime = Date.now();
+  
+  // For question stages, automatically start timer (set to 'active' with startTime)
+  // For other stages, set to 'active' without timer
+  if (config.type === 'question') {
+    state.stageStatus = 'active';
+    state.stageStartTime = Date.now(); // Start timer immediately
+  } else {
+    state.stageStatus = 'active';
+    // Don't set stageStartTime for non-question stages (leave it as is or don't set)
+    delete state.stageStartTime;
+  }
   
   saveStateToRedis();
   return true;
@@ -138,9 +141,18 @@ export function updateSubmission(id: string, updates: Partial<Submission>) {
     
     Object.assign(sub, updates);
     saveStateToRedis();
+    
+    // Notify that state changed (for real-time updates)
+    redis.publish('state:changed', JSON.stringify({ type: 'submission_updated', submissionId: id }));
   }
 }
 
 export function getSubmissionsForStage(stageId: string) {
   return state.submissions.filter(s => s.stageId === stageId);
+}
+
+export function resetState() {
+  state = { ...initialState };
+  saveStateToRedis();
+  console.log('[gameState] State reset to initial');
 }

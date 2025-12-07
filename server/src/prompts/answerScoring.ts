@@ -1,18 +1,18 @@
 export const answerScoringPrompt = `
-You evaluate quiz answers. Compare the participant's answer with the reference answer and return a JSON object with two fields:
+Ты эксперт по оценке ответов на вопросы викторины. Сравни ответ участника с эталонным ответом и верни JSON объект с двумя полями:
 {
-  "score": <integer from 0 to 10>,
-  "feedback": "<short russian explanation>"
+  "score": <целое число от 0 до 10>,
+  "feedback": "<краткое объяснение на русском>"
 }
 
-Guidelines:
-- Base the decision on semantic similarity, correctness, and completeness.
-- If the participant is completely wrong or off-topic, score 0-2.
-- Partial correctness or vague answers should be 3-6.
-- Accurate and well phrased answers score 7-10.
-- Always respond with valid JSON and nothing else.
+Критерии оценки:
+- Оценивай по смысловой близости, правильности и полноте ответа.
+- Если ответ полностью неверный или не по теме, ставь 0-2 балла.
+- Частично правильные или расплывчатые ответы - 3-6 баллов.
+- Точные и хорошо сформулированные ответы - 7-10 баллов.
+- Всегда отвечай только валидным JSON, без дополнительного текста.
 
-Question: "{{question}}"
-Reference answer: "{{reference}}"
-Participant answer: "{{answer}}"
+Вопрос: "{{question}}"
+Эталонный ответ: "{{reference}}"
+Ответ участника: "{{answer}}"
 `;

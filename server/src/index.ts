@@ -5,9 +5,10 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { createAdapter } from '@socket.io/redis-adapter';
 import { redis, redisSubscriber } from './redisClient';
-import { loadStateFromRedis, getState, setState, addPlayer, getPlayer, setStage, setStageStatus, getCurrentStage, addSubmission, getSubmissionsForStage, Player } from './gameState';
+import { loadStateFromRedis, getState, setState, addPlayer, getPlayer, setStage, setStageStatus, getCurrentStage, addSubmission, getSubmissionsForStage, resetState, Player } from './gameState';
 import { moderateNickname } from './services/nicknameModeration';
 import { scoreQueue } from './queue/scoreQueue';
+import { Queue } from 'bullmq';
 import { gameConfig } from '@prompt-night/shared';
 
 import { rateLimit } from 'express-rate-limit';
@@ -38,6 +39,25 @@ const io = new Server(server, {
 
 // Load state on boot
 loadStateFromRedis();
+
+// Subscribe to state changes from workers (for real-time leaderboard updates)
+redisSubscriber.subscribe('state:changed', (err) => {
+  if (err) {
+    console.error('[redis] Failed to subscribe to state:changed', err);
+  } else {
+    console.log('[redis] Subscribed to state:changed channel');
+  }
+});
+
+redisSubscriber.on('message', (channel, message) => {
+  if (channel === 'state:changed') {
+    // Reload state from Redis to get latest scores
+    loadStateFromRedis().then(() => {
+      // Broadcast updated state to all clients
+      broadcastState();
+    });
+  }
+});
 
 // --- HTTP Routes ---
 
@@ -71,18 +91,46 @@ function broadcastState() {
   const state = getState();
   const currentStage = getCurrentStage();
   
-  // Public state (sanitized? for now full state is okay for display, maybe filtered for players)
+  // Calculate leaderboard (sorted by score)
+  const leaderboard = Object.values(state.players)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 100); // Top 100
+  
+  // Public state for players (limited info)
+  // Note: currentPlayer is sent per-socket in connection handler, not in broadcast
   const publicState = {
     currentStage,
-    // players: state.players, // Maybe too heavy to send all? Send count?
     playerCount: Object.keys(state.players).length,
-    // submissions: state.submissions.length, 
-    // We can send specific data per namespace
+    leaderboard, // Include leaderboard for players too
   };
 
-  playerIo.emit('state:update', publicState);
-  displayIo.emit('state:update', { ...state, currentStage }); // Display gets full state including scores
-  adminIo.emit('state:update', { ...state, currentStage });   // Admin gets full state
+  // Full state for admin and display (includes all players and submissions)
+  const fullState = {
+    ...state,
+    currentStage,
+    leaderboard,
+  };
+
+  // For players, send personalized state with their current score
+  playerIo.sockets.forEach((socket) => {
+    const { playerId } = socket.handshake.auth;
+    if (playerId) {
+      const player = getPlayer(playerId);
+      if (player) {
+        socket.emit('state:update', {
+          ...publicState,
+          currentPlayer: { id: player.id, name: player.name, score: player.score },
+        });
+      } else {
+        socket.emit('state:update', publicState);
+      }
+    } else {
+      socket.emit('state:update', publicState);
+    }
+  });
+  
+  displayIo.emit('state:update', fullState); // Display gets full state including scores
+  adminIo.emit('state:update', fullState);   // Admin gets full state
 }
 
 // Timer Loop
@@ -105,24 +153,51 @@ playerIo.on('connection', (socket) => {
   // If player reconnects with ID, we check if they exist.
   // Ideally we validate a token. For this simplified version, we trust the ID if it exists in Redis.
   
+  let currentPlayer = null;
   if (playerId && getPlayer(playerId)) {
     socket.join(playerId);
     // Mark online
-    const player = getPlayer(playerId);
-    if (player) player.isOnline = true;
+    currentPlayer = getPlayer(playerId);
+    if (currentPlayer) currentPlayer.isOnline = true;
   }
 
   socket.emit('config', gameConfig);
-  socket.emit('state:update', { currentStage: getCurrentStage(), playerCount: Object.keys(getState().players).length });
+  
+  const state = getState();
+  const currentStage = getCurrentStage();
+  const leaderboard = Object.values(state.players)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 100);
+  
+  socket.emit('state:update', { 
+    currentStage, 
+    playerCount: Object.keys(state.players).length,
+    leaderboard,
+    currentPlayer: currentPlayer ? { id: currentPlayer.id, name: currentPlayer.name, score: currentPlayer.score } : undefined,
+  });
 
   socket.on('register', async ({ name }) => {
     // Double check moderation just in case? Or assume client did it via REST?
     // Client should do REST for better UX (loading state), then connect socket.
     // But we can do it here too.
     const newPlayerId = `p-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    addPlayer(newPlayerId, name);
+    const newPlayer = addPlayer(newPlayerId, name);
     socket.emit('registered', { playerId: newPlayerId });
     socket.join(newPlayerId);
+    
+    // Send updated state with current player info
+    const state = getState();
+    const currentStage = getCurrentStage();
+    const leaderboard = Object.values(state.players)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 100);
+    socket.emit('state:update', {
+      currentStage,
+      playerCount: Object.keys(state.players).length,
+      leaderboard,
+      currentPlayer: { id: newPlayer.id, name: newPlayer.name, score: newPlayer.score },
+    });
+    
     broadcastState();
   });
 
@@ -162,24 +237,61 @@ playerIo.on('connection', (socket) => {
         questionText: stage.questionText,
         referenceAnswer: stage.referenceAnswer,
         participantAnswer: answer,
-        playerId: pid, // Pass player ID if needed by worker (though state update handles it via submission lookup if we wanted, but passing is safer)
+        playerId: pid,
+      }, {
+        attempts: 3, // Retry up to 3 times on failure
+        backoff: {
+          type: 'exponential',
+          delay: 2000, // Start with 2s delay, then 4s, 8s...
+        },
+      });
+    }
+    
+    // Update current player's state for this socket
+    const updatedPlayer = getPlayer(pid);
+    if (updatedPlayer) {
+      const state = getState();
+      const currentStage = getCurrentStage();
+      const leaderboard = Object.values(state.players)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 100);
+      socket.emit('state:update', {
+        currentStage,
+        playerCount: Object.keys(state.players).length,
+        leaderboard,
+        currentPlayer: { id: updatedPlayer.id, name: updatedPlayer.name, score: updatedPlayer.score },
       });
     }
     
     broadcastState();
-    socket.emit('submitted', { success: true });
+    socket.emit('submitted', { success: true, stageId: stage.id });
   });
 });
 
 // Admin Connection
 adminIo.on('connection', (socket) => {
   const { secret } = socket.handshake.auth;
+  console.log('[admin] Connection attempt, secret provided:', !!secret);
+  
   if (secret !== process.env.ADMIN_SECRET) {
+    console.log('[admin] Invalid secret, disconnecting');
     socket.disconnect();
     return;
   }
 
-  socket.emit('state:update', { ...getState(), currentStage: getCurrentStage() });
+  console.log('[admin] Authenticated, sending initial state');
+  
+  // Send config first
+  socket.emit('config', gameConfig);
+  
+  // Then send state
+  const currentState = getState();
+  const currentStage = getCurrentStage();
+  socket.emit('state:update', { 
+    ...currentState, 
+    currentStage,
+    playerCount: Object.keys(currentState.players).length,
+  });
 
   socket.on('stage:set', (stageId) => {
     setStage(stageId);
@@ -189,6 +301,29 @@ adminIo.on('connection', (socket) => {
   socket.on('stage:status', (status) => {
     setStageStatus(status);
     broadcastState();
+  });
+
+  socket.on('reset', async () => {
+    console.log('[admin] Reset requested');
+    
+    // Clear scoring queue
+    try {
+      await scoreQueue.obliterate({ force: true });
+      console.log('[admin] Scoring queue cleared');
+    } catch (err) {
+      console.error('[admin] Failed to clear queue:', err);
+    }
+    
+    // Reset game state (this clears all players, submissions, scores)
+    resetState();
+    
+    // Broadcast reset state to all clients
+    // Send special reset event to players so they clear localStorage
+    playerIo.emit('reset', { message: 'Game reset, please re-register' });
+    
+    broadcastState();
+    
+    socket.emit('reset:complete', { success: true });
   });
 });
 

@@ -6,7 +6,7 @@ export default function DisplayPage() {
 
   if (!state) return <div className="bg-black min-h-screen text-white flex items-center justify-center text-4xl">Connecting...</div>;
 
-  const { currentStage, players } = state;
+  const { currentStage, players, leaderboard } = state;
 
   return (
     <div className="bg-black min-h-screen text-white font-sans overflow-hidden">
@@ -39,9 +39,8 @@ export default function DisplayPage() {
          <div className="flex flex-col items-center justify-center min-h-screen p-8">
             <h1 className="text-4xl font-bold mb-8">Турнирная таблица</h1>
             <div className="w-full max-w-3xl">
-                {players && Object.values(players)
-                    .sort((a, b) => b.score - a.score)
-                    .slice(0, 10)
+                {(leaderboard || (players && Object.values(players).sort((a, b) => b.score - a.score)))
+                    ?.slice(0, 10)
                     .map((p, i) => (
                         <div key={p.id} className="flex justify-between items-center py-4 border-b border-gray-800 text-2xl">
                             <div className="flex items-center gap-4">

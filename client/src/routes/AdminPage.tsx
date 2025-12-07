@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useRealtime } from '../hooks/useRealtime';
 import { ADMIN_SECRET } from '../lib/constants';
-import { gameConfig } from '@prompt-night/shared';
 
 export default function AdminPage() {
   const [secret, setSecret] = useState(ADMIN_SECRET || localStorage.getItem('adminSecret') || '');
-  const { socket, state, isConnected } = useRealtime('admin', { secret });
+  const { socket, state, isConnected, config } = useRealtime('admin', { secret });
 
   useEffect(() => {
     if (secret) localStorage.setItem('adminSecret', secret);
@@ -24,16 +23,39 @@ export default function AdminPage() {
     );
   }
 
-  if (!state) return <div className="p-4">Connecting...</div>;
+  if (!state || !config) {
+    return (
+      <div className="p-4">
+        <div>Connecting...</div>
+        <div className="text-sm text-gray-500 mt-2">
+          State: {state ? '✓' : '✗'} | Config: {config ? '✓' : '✗'} | Connected: {isConnected ? '✓' : '✗'}
+        </div>
+      </div>
+    );
+  }
 
-  const { currentStage, playerCount, players, submissions } = state;
+  const { currentStage, playerCount, players, leaderboard } = state;
+
+  const handleReset = () => {
+    if (confirm('Вы уверены? Это удалит всех игроков, все ответы и баллы. Игра вернется к начальному состоянию.')) {
+      socket?.emit('reset');
+    }
+  };
 
   return (
     <div className="p-4 max-w-4xl mx-auto">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Admin Panel</h1>
-        <div className="text-sm">
-          Status: {isConnected ? 'Online' : 'Offline'} | Players: {playerCount}
+        <div className="flex items-center gap-4">
+          <div className="text-sm">
+            Status: {isConnected ? 'Online' : 'Offline'} | Players: {playerCount}
+          </div>
+          <button
+            onClick={handleReset}
+            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm font-bold"
+          >
+            🔄 Сбросить всё
+          </button>
         </div>
       </div>
 
@@ -41,7 +63,7 @@ export default function AdminPage() {
         <div className="bg-white p-4 rounded shadow">
           <h2 className="text-xl font-bold mb-4">Stages</h2>
           <div className="space-y-2">
-            {gameConfig.stages.map(stage => (
+            {config.stages.map(stage => (
               <div 
                 key={stage.id}
                 className={`p-3 rounded border flex justify-between items-center ${
@@ -109,9 +131,8 @@ export default function AdminPage() {
           <div className="bg-white p-4 rounded shadow">
               <h2 className="text-xl font-bold mb-4">Leaderboard Preview</h2>
               {/* Simple list of top 5 */}
-              {players && Object.values(players)
-                .sort((a, b) => b.score - a.score)
-                .slice(0, 5)
+              {(leaderboard || (players && Object.values(players).sort((a, b) => b.score - a.score)))
+                ?.slice(0, 5)
                 .map((p, i) => (
                     <div key={p.id} className="flex justify-between py-1 border-b last:border-0">
                         <span>{i + 1}. {p.name}</span>

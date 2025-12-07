@@ -1,12 +1,14 @@
 import { io, Socket } from 'socket.io-client';
 import { useEffect, useState } from 'react';
 import { SERVER_URL } from '../lib/constants';
-import { GameConfig, GameStage, Player } from '@prompt-night/shared';
+import type { GameConfig, GameStage, Player } from '@prompt-night/shared';
 
 export interface RealtimeState {
   currentStage: GameStage;
   playerCount: number;
   players?: Record<string, Player>; // Only for admin/display
+  leaderboard?: Player[]; // Sorted leaderboard (for all clients)
+  currentPlayer?: { id: string; name: string; score: number }; // Current player info (for player namespace)
   submissions?: any[]; // Only for admin
 }
 
@@ -24,19 +26,26 @@ export function useRealtime(namespace: string, auth?: any) {
 
     s.on('connect', () => {
       setIsConnected(true);
-      console.log(`Connected to ${namespace}`);
+      console.log(`[${namespace}] Connected`);
     });
 
-    s.on('disconnect', () => {
+    s.on('connect_error', (error) => {
+      console.error(`[${namespace}] Connection error:`, error);
       setIsConnected(false);
-      console.log(`Disconnected from ${namespace}`);
+    });
+
+    s.on('disconnect', (reason) => {
+      setIsConnected(false);
+      console.log(`[${namespace}] Disconnected:`, reason);
     });
 
     s.on('config', (cfg: GameConfig) => {
+      console.log(`[${namespace}] Received config`);
       setConfig(cfg);
     });
 
     s.on('state:update', (newState: RealtimeState) => {
+      console.log(`[${namespace}] Received state update:`, newState);
       setState(prev => ({ ...prev, ...newState }));
     });
 

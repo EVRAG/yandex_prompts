@@ -4,6 +4,13 @@ const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
 // BullMQ requires maxRetriesPerRequest = null for blocking commands (BRPOP etc)
 const baseOptions = {
   maxRetriesPerRequest: null as null,
+  retryStrategy: (times: number) => {
+    const delay = Math.min(times * 50, 2000);
+    console.log(`[redis] Retrying connection in ${delay}ms (attempt ${times})`);
+    return delay;
+  },
+  enableReadyCheck: true,
+  lazyConnect: false,
 };
 
 export const redis = new Redis(redisUrl, baseOptions);
