@@ -18,10 +18,33 @@ This document explains how to deploy the single-round Railways voting game with 
 
 ## 1. Prepare Environment Variables
 
-1. Copy `.env.example` (repo root) to `.env` — Docker Compose грузит именно этот файл внутрь контейнера.
-   - Required: `YANDEX_API_KEY`, `YANDEX_FOLDER_ID`, `REDIS_URL`, `ADMIN_SECRET`.
-   - Optional tuning: `STATE_TTL_SECONDS`, `SUBMIT_THROTTLE_MS`, `SCORE_QUEUE_NAME`, `SCORE_TIMEOUT_MS`, `SCORE_WORKERS`, `YANDEX_OPENAI_BASE_URL`, `YANDEX_SCORING_MODEL`, `YANDEX_MODERATION_MODEL`, `SERVER_HOST_PORT`, `CLIENT_HOST_PORT`, `CLIENT_PUBLIC_SERVER_URL`.
-2. (Опционально) Можешь держать `server/.env` только для локального `npm run dev` без Docker — Compose его не читает.
+1. Создай корневой `.env` (именно его читает Docker Compose). Пример значений для локального запуска с встроенным Redis-сервисом:
+
+   ```env
+   YANDEX_API_KEY=your-yandex-api-key
+   YANDEX_FOLDER_ID=your-folder-id
+   ADMIN_SECRET=change-me
+
+   # Redis в том же compose: сервис `redis`
+   REDIS_URL=redis://redis:6379
+
+   # Порты наружу
+   SERVER_HOST_PORT=4000
+   CLIENT_HOST_PORT=5173
+   CLIENT_PUBLIC_SERVER_URL=http://localhost:4000
+
+   # Опционально
+   # YANDEX_OPENAI_BASE_URL=https://llm.api.cloud.yandex.net/v1
+   # YANDEX_SCORING_MODEL=
+   # YANDEX_MODERATION_MODEL=
+   # STATE_TTL_SECONDS=86400
+   # SUBMIT_THROTTLE_MS=1000
+   # SCORE_QUEUE_NAME=prompt-night-score
+   # SCORE_TIMEOUT_MS=10000
+   # SCORE_WORKERS=4
+   ```
+
+2. (Опционально) `server/.env` можно держать только для локального `npm run dev` без Docker — Compose его не читает.
 
 ## 2. Build and Run with Docker Compose
 
@@ -55,6 +78,12 @@ After `docker compose up -d` you should see:
 - `http://<host>/display` → stage layout
 
 Switch the phase from the admin panel to ensure the other screens react in real time.
+
+### Dokploy (single container)
+
+- Build type: Dockerfile, file `Dockerfile.server`, context `.`.
+- Expose container port `4000` (map на внешний порт по необходимости).
+- Обязательно задайте `REDIS_URL`. Для локального Redis внутри compose оставьте `redis://redis:6379` и поднимайте вместе с `docker-compose.yml`. Если Redis внешний/managed — пропишите его хост/порт.
 
 ### Useful commands
 
