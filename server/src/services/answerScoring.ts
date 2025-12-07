@@ -1,44 +1,54 @@
-import OpenAI from 'openai';
 import { answerScoringPrompt } from '../prompts/answerScoring';
-
-const apiKey = process.env.OPENAI_API_KEY;
-
-let openai: OpenAI | null = null;
-if (apiKey) {
-  openai = new OpenAI({ apiKey });
-}
+import { getYandexClient, resolveYandexModel } from './yandexClient';
+import { log } from '../logger';
 
 export async function scoreAnswer(params: {
   question: string;
   reference: string;
   answer: string;
 }) {
-  if (!openai) {
-    throw new Error('OPENAI_API_KEY is не задан. Сервис оценки ответов недоступен.');
-  }
+  const openai = getYandexClient();
+  const model = resolveYandexModel('YANDEX_SCORING_MODEL', 'yandexgpt-lite');
+  const startedAt = Date.now();
 
   const prompt = answerScoringPrompt
     .replace('{{question}}', params.question)
     .replace('{{reference}}', params.reference)
     .replace('{{answer}}', params.answer);
 
-  const response = await openai.responses.create({
-    model: 'gpt-4o-mini',
-    input: prompt,
-  });
+  try {
+    const completion = await openai.chat.completions.create({
+      model,
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0,
+    });
 
-  const rawOutput = response.output_text;
-  const text = Array.isArray(rawOutput) ? rawOutput.join('\n') : rawOutput ?? '';
-  const match = text.match(/\{[\s\S]*\}/);
-  if (!match) {
-    throw new Error('Не удалось разобрать ответ модели.');
+    const text = completion.choices[0]?.message?.content ?? '';
+    const match = text.match(/\{[\s\S]*\}/);
+    if (!match) {
+      throw new Error('Не удалось разобрать ответ модели.');
+    }
+
+    const parsed = JSON.parse(match[0]) as { score: number; feedback?: string };
+    const normalizedScore = Math.max(0, Math.min(10, Math.round(parsed.score)));
+
+    log('info', 'llm.score.success', {
+      model,
+      durationMs: Date.now() - startedAt,
+      questionPreview: params.question.slice(0, 80),
+    });
+
+    return {
+      score: normalizedScore,
+      feedback: parsed.feedback ?? '',
+    };
+  } catch (err) {
+    log('error', 'llm.score.error', {
+      model,
+      durationMs: Date.now() - startedAt,
+      error: err instanceof Error ? err.message : String(err),
+    });
+    throw err;
   }
-
-  const parsed = JSON.parse(match[0]) as { score: number; feedback?: string };
-  const normalizedScore = Math.max(0, Math.min(10, Math.round(parsed.score)));
-  return {
-    score: normalizedScore,
-    feedback: parsed.feedback ?? '',
-  };
 }
 

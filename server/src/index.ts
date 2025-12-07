@@ -1,4 +1,10 @@
-import 'dotenv/config';
+import dotenv from 'dotenv';
+import path from 'node:path';
+
+// Load shared .env from repo root (works in dev and in dist build).
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+// Fallback to current working directory if root file отсутствует.
+dotenv.config();
 import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
@@ -11,7 +17,7 @@ import { redis, redisSubscriber } from './redisClient';
 import { loadState, persistState } from './stateStorage';
 import { scoreQueue, scoreQueueEvents, type ScoreJobResult } from './queue/scoreQueue';
 import { log } from './logger';
-import { checkOpenAI, checkRedis } from './services/health';
+import { checkRedis, checkYandexLLM } from './services/health';
 
 type SocketRole = 'client' | 'admin' | 'display';
 
@@ -218,6 +224,12 @@ async function start() {
       emitState();
     });
 
+    socket.on('admin:reset', () => {
+      if (role !== 'admin') return;
+      stateManager.resetAll();
+      emitState();
+    });
+
     socket.on('admin:sync', () => {
       if (role !== 'admin') return;
       socket.emit('state:update', stateManager.getAdminSnapshot());
@@ -233,14 +245,14 @@ async function start() {
   });
 
   app.get('/health', (_req, res) => {
-    Promise.all([checkRedis(), checkOpenAI()])
-      .then(([redisHealth, openaiHealth]) => {
-        const status = redisHealth.ok && openaiHealth.ok ? 'ok' : 'degraded';
+    Promise.all([checkRedis(), checkYandexLLM()])
+      .then(([redisHealth, yandexHealth]) => {
+        const status = redisHealth.ok && yandexHealth.ok ? 'ok' : 'degraded';
         const statusCode = status === 'ok' ? 200 : 503;
         res.status(statusCode).json({
           status,
           redis: redisHealth,
-          openai: openaiHealth,
+          llm: yandexHealth,
           updatedAt: Date.now(),
         });
       })
@@ -289,6 +301,12 @@ async function start() {
     } catch (error) {
       res.status(400).json({ message: (error as Error).message });
     }
+  });
+
+  app.post('/admin/reset', requireAdminSecret, (_req, res) => {
+    stateManager.resetAll();
+    emitState();
+    res.json(stateManager.getAdminSnapshot());
   });
 
   server.listen(PORT, () => {

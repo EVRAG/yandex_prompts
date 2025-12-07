@@ -1,38 +1,44 @@
-import OpenAI from 'openai';
 import { nicknameModerationPrompt } from '../prompts/nicknameModeration';
-
-const openAiKey = process.env.OPENAI_API_KEY;
-
-let openai: OpenAI | null = null;
-if (openAiKey) {
-  openai = new OpenAI({ apiKey: openAiKey });
-}
+import { getYandexClient, resolveYandexModel } from './yandexClient';
+import { log } from '../logger';
 
 export async function validateNickname(nickname: string) {
-  if (!openai) {
-    throw new Error('OPENAI_API_KEY is not configured');
-  }
+  const openai = getYandexClient();
+  const model = resolveYandexModel('YANDEX_MODERATION_MODEL', 'yandexgpt-lite');
+  const startedAt = Date.now();
 
   const trimmed = nickname.trim();
   const prompt = nicknameModerationPrompt.replace('{{nickname}}', trimmed);
 
-  const response = await openai.responses.create({
-    model: 'gpt-4o-mini',
-    input: prompt,
-  });
+  try {
+    const completion = await openai.chat.completions.create({
+      model,
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0,
+    });
 
-  const rawOutput = response.output_text;
-  const output = (Array.isArray(rawOutput) ? rawOutput.join('\n') : rawOutput ?? '').trim();
-  const normalized = output.toUpperCase();
+    const output = (completion.choices[0]?.message?.content ?? '').trim();
+    const normalized = output.toUpperCase();
 
-  if (normalized.startsWith('OK')) {
-    return { allowed: true as const };
+    const allowed = normalized.startsWith('OK');
+    const reason = allowed
+      ? ''
+      : output.replace(/^REJECT[:\s]*/i, '').trim() || 'Никнейм не прошёл модерацию.';
+
+    log('info', 'llm.moderation.result', {
+      model,
+      durationMs: Date.now() - startedAt,
+      allowed,
+    });
+
+    return allowed ? { allowed: true as const } : { allowed: false as const, reason };
+  } catch (err) {
+    log('error', 'llm.moderation.error', {
+      model,
+      durationMs: Date.now() - startedAt,
+      error: err instanceof Error ? err.message : String(err),
+    });
+    throw err;
   }
-
-  const reason = output.replace(/^REJECT[:\s]*/i, '').trim();
-  return {
-    allowed: false as const,
-    reason: reason || 'Никнейм не прошёл модерацию.',
-  };
 }
 

@@ -1,5 +1,5 @@
-import OpenAI from 'openai';
 import { redis } from '../redisClient';
+import { getYandexClient, getYandexConfigSnapshot } from './yandexClient';
 
 export async function checkRedis() {
   try {
@@ -11,16 +11,11 @@ export async function checkRedis() {
   }
 }
 
-export async function checkOpenAI() {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    return { ok: false, error: 'OPENAI_API_KEY not set' };
-  }
-
+export async function checkYandexLLM() {
   try {
-    const client = new OpenAI({ apiKey });
+    const client = getYandexClient();
     await client.models.list();
-    return { ok: true };
+    return { ok: true, config: getYandexConfigSnapshot() };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     return { ok: false, error: message };

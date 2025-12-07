@@ -42,7 +42,7 @@ const readScenario = (baseIds: string[]) => {
 };
 
 export default function AdminPage() {
-  const { config, snapshot, status, error, setStage, refresh } = useAdminRealtime();
+  const { config, snapshot, status, error, setStage, refresh, resetGame } = useAdminRealtime();
   const [scenarioOrder, setScenarioOrder] = useState<string[]>([]);
   const [draggingId, setDraggingId] = useState<string | null>(null);
 
@@ -116,6 +116,14 @@ export default function AdminPage() {
     setStage('display', stageId);
   };
 
+  const handleReset = () => {
+    const confirmed = window.confirm(
+      'Сбросить игру? Будут очищены игроки, очки и ответы. Это действие необратимо.',
+    );
+    if (!confirmed) return;
+    resetGame();
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 font-sans pb-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
@@ -138,6 +146,13 @@ export default function AdminPage() {
               className="text-sm font-semibold text-indigo-600 hover:text-indigo-500"
             >
               Обновить
+            </button>
+            <button
+              type="button"
+              onClick={handleReset}
+              className="inline-flex items-center rounded-md bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 ring-1 ring-inset ring-red-200 hover:bg-red-100"
+            >
+              Сбросить игру
             </button>
           </div>
         </header>

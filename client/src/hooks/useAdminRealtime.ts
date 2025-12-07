@@ -17,6 +17,7 @@ interface ClientToServerEvents {
   'admin:set-stage': (payload: { target: StageTarget; stageId: string }) => void;
   'admin:update-score': (payload: { playerId: string; score: number }) => void;
   'admin:sync': () => void;
+  'admin:reset': () => void;
 }
 
 export function useAdminRealtime() {
@@ -82,6 +83,10 @@ export function useAdminRealtime() {
     socketRef.current?.emit('admin:sync');
   }, []);
 
+  const resetGame = useCallback(() => {
+    socketRef.current?.emit('admin:reset');
+  }, []);
+
   return {
     snapshot,
     config,
@@ -89,6 +94,7 @@ export function useAdminRealtime() {
     error,
     setStage,
     refresh,
+    resetGame,
   };
 }
 

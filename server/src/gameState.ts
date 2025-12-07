@@ -263,6 +263,14 @@ export class GameStateManager {
     return snapshot;
   }
 
+  resetAll(): void {
+    this.players.clear();
+    this.submissions.length = 0;
+    this.clientStageId = this.getDefaultStageId('clients');
+    this.displayStageId = this.getDefaultStageId('display');
+    this.touch();
+  }
+
   toPersistedState(): PersistedState {
     return {
       clientStageId: this.clientStageId,

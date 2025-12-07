@@ -19,8 +19,8 @@ This document explains how to deploy the single-round Railways voting game with 
 ## 1. Prepare Environment Variables
 
 1. Copy `server/.env.example` to `server/.env` and override `PORT` if you don’t want the default `4000`.
-   - Required: `OPENAI_API_KEY`, `REDIS_URL`, `ADMIN_SECRET`.
-   - Optional tuning: `STATE_TTL_SECONDS`, `SUBMIT_THROTTLE_MS`, `SCORE_QUEUE_NAME`, `SCORE_TIMEOUT_MS`, `SCORE_WORKERS`.
+   - Required: `YANDEX_API_KEY`, `YANDEX_FOLDER_ID`, `REDIS_URL`, `ADMIN_SECRET`.
+   - Optional tuning: `STATE_TTL_SECONDS`, `SUBMIT_THROTTLE_MS`, `SCORE_QUEUE_NAME`, `SCORE_TIMEOUT_MS`, `SCORE_WORKERS`, `YANDEX_OPENAI_BASE_URL`, `YANDEX_SCORING_MODEL`, `YANDEX_MODERATION_MODEL`.
 2. Copy `.env.example` (repo root) to `.env` and set compose overrides:
    - `SERVER_HOST_PORT`: external port that exposes the API (default `4000`).
    - `CLIENT_HOST_PORT`: external port for the nginx SPA (set to `80` if you want the domain root to work without a port).

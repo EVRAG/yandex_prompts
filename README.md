@@ -22,7 +22,7 @@ Below is a walkthrough of how state, sockets, scoring, and rendering fit togethe
 - Each **question** now has:
   - `duration` (seconds) – client timer.
   - `answerKey` – canonical answer for LLM scoring.
-  - `scoring` – manual vs LLM metadata (currently LLM scoring via OpenAI).
+- `scoring` – manual vs LLM metadata (currently LLM scoring via Yandex GPT).
 - `shared/src/types/gameConfig.ts` defines the union types; compiled output is imported by both server and client.
 - Before building server, `npm --prefix shared run build` runs (hooked via `prebuild`).
 
@@ -34,7 +34,7 @@ Below is a walkthrough of how state, sockets, scoring, and rendering fit togethe
 
 `server/src/index.ts`:
 
-- Loads `dotenv/config` so `.env` works (`OPENAI_API_KEY` required for moderation/scoring).
+- Loads `dotenv/config` so `.env` works (`YANDEX_API_KEY` + `YANDEX_FOLDER_ID` required for moderation/scoring).
 - Creates HTTP + Socket.IO server (`/health`, `/config`, `/state`, `/admin/stage`, `/moderate/nickname` REST routes).
 
 ### 2.2 GameStateManager
@@ -80,7 +80,7 @@ Common events:
   - Server validates:
     - Stage is question & currently active for clients.
     - Stage has `answerKey`.
-  - Adds job to scoring queue (BullMQ, Redis) → worker calls `scoreAnswer(...)` (OpenAI responses API with `answerScoringPrompt`).
+  - Adds job to scoring queue (BullMQ, Redis) → worker calls `scoreAnswer(...)` (Yandex GPT via OpenAI-compatible Responses API with `answerScoringPrompt`).
   - Adds score via `incrementPlayerScore`.
   - Records submission with evaluation data.
   - Emits `player:submitted { id, stageId, createdAt, score, notes }` only to that socket.
@@ -94,7 +94,7 @@ Common events:
 
 | Endpoint               | Method | Description                                 |
 |------------------------|--------|---------------------------------------------|
-| `/health`              | GET    | redis + OpenAI reachability, status ok/degraded |
+| `/health`              | GET    | redis + Yandex GPT reachability, status ok/degraded |
 | `/config`              | GET    | returns `gameConfig`                        |
 | `/state`               | GET    | admin snapshot                             |
 | `/moderate/nickname`   | POST   | { nickname } → { allowed, reason? }        |
@@ -103,11 +103,11 @@ Common events:
 ### 2.5 Scoring services
 
 - `server/src/prompts/nicknameModeration.ts` – prompt template for Accept/Reject.
-- `server/src/services/nicknameModeration.ts` – wrapper around `openai.responses.create`.
+- `server/src/services/nicknameModeration.ts` – wrapper around Yandex GPT Responses API.
 - `server/src/prompts/answerScoring.ts` – JSON output prompt for 0-10 score.
-- `server/src/services/answerScoring.ts` – calls OpenAI, parses JSON, returns `{ score, feedback }`.
+- `server/src/services/answerScoring.ts` – calls Yandex GPT, parses JSON, returns `{ score, feedback }`.
 
-Potential issue: OpenAI API latency/failure will block scoring. We currently catch errors and send `player:error` if scoring fails.
+Potential issue: Yandex GPT latency/failure will block scoring. We currently catch errors and send `player:error` if scoring fails.
 
 ---
 
@@ -161,7 +161,7 @@ Potential issue: OpenAI API latency/failure will block scoring. We currently cat
 ### 3.4 Messaging flow summary
 
 ```
-Client POST /moderate/nickname ──> server (OpenAI check) ──> allowed?
+Client POST /moderate/nickname ──> server (Yandex GPT check) ──> allowed?
 Player socket connect ──> gets state snapshot
 Answers -> socket 'player:submit' ──> server scoring ──> 'player:submitted' + state broadcast
 Admin buttons -> 'admin:set-stage' -> state broadcast
@@ -186,7 +186,7 @@ Display sockets automatically refresh on every 'state:update'
 ### Prerequisites
 
 - Node.js 20+
-- `OPENAI_API_KEY` in `server/.env` (see `.env.example`).
+- `YANDEX_API_KEY` and `YANDEX_FOLDER_ID` in `server/.env` (see `.env.example`).
 - `REDIS_URL` (e.g. `redis://localhost:6379`) — Socket.IO adapter, state cache, scoring queue.
 - `ADMIN_SECRET` — required for admin sockets and `/admin/stage` REST.
 - Optional tuning:
@@ -229,11 +229,11 @@ You can then serve `client/dist` behind any static server and run `node server/d
 1. **No persistent database**  
    - All scores/players reset on server restart. Consider adding Redis or Postgres.
 
-2. **OpenAI dependency**  
-   - Nickname moderation & scoring require `OPENAI_API_KEY`. If rate-limited or offline, players cannot register or get scores. Should implement fallback/manual scoring or queue/retry.
+2. **LLM dependency (Yandex GPT)**  
+   - Nickname moderation & scoring require `YANDEX_API_KEY` + `YANDEX_FOLDER_ID`. If rate-limited or offline, players cannot register or get scores. Should implement fallback/manual scoring or queue/retry.
 
 3. **LLM latency**  
-   - Scoring waits for OpenAI response per submission; multiple simultaneous answers might cause noticeable delay. Could queue in background and notify via separate event.
+   - Scoring waits for Yandex GPT response per submission; multiple simultaneous answers might cause noticeable delay. Could queue in background and notify via separate event.
 
 4. **Security**  
    - Admin role is unauthenticated; any socket can claim `role: 'admin'`. Need auth (token or secret).
@@ -298,9 +298,9 @@ You can then serve `client/dist` behind any static server and run `node server/d
 - All stage definitions live in `shared/gameConfig.json`.
 - `GameStateManager` is the single source of truth.
 - Socket.IO keeps admin/display/player clients in sync in realtime.
-- Player answers are moderated/scored via OpenAI before scores are applied.
+- Player answers are moderated/scored via Yandex GPT before scores are applied.
 - UI is now branded with Yandex-style yellow/black, with `YS Display` font.
-- Known gaps: persistence, auth, OpenAI dependency, queueing, resiliency.
+- Known gaps: persistence, auth, Yandex GPT dependency, queueing, resiliency.
 
 This document should give enough detail to maintain, extend, or containerize the system. Update it as architecture evolves.***
 
