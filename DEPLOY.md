@@ -38,12 +38,49 @@
    ```
 
 5. **Настройте SSH ключ для GitHub Actions:**
+
+   **Вариант A: Генерация ключа на локальной машине (рекомендуется)**
+   
    ```bash
-   # На сервере создайте SSH ключ (если его нет)
-   ssh-keygen -t ed25519 -C "deploy@server"
+   # На вашей локальной машине создайте SSH ключ
+   ssh-keygen -t ed25519 -C "github-actions-deploy" -f ~/.ssh/github_actions_deploy
+   
+   # Скопируйте публичный ключ на сервер
+   ssh-copy-id -i ~/.ssh/github_actions_deploy.pub user@your-server-ip
+   
+   # Или вручную:
+   # 1. Покажите публичный ключ
+   cat ~/.ssh/github_actions_deploy.pub
+   
+   # 2. На сервере добавьте его в authorized_keys
+   # ssh user@your-server-ip
+   # echo "ваш-публичный-ключ" >> ~/.ssh/authorized_keys
+   # chmod 600 ~/.ssh/authorized_keys
+   
+   # 3. Скопируйте приватный ключ для GitHub Secrets
+   cat ~/.ssh/github_actions_deploy
+   # Скопируйте весь вывод (включая -----BEGIN и -----END строки)
+   ```
+   
+   **Вариант B: Генерация ключа на сервере**
+   
+   ```bash
+   # Подключитесь к серверу
+   ssh user@your-server-ip
+   
+   # Создайте SSH ключ на сервере
+   ssh-keygen -t ed25519 -C "deploy@server" -f ~/.ssh/github_actions_deploy
    
    # Добавьте публичный ключ в authorized_keys
-   cat ~/.ssh/id_ed25519.pub >> ~/.ssh/authorized_keys
+   cat ~/.ssh/github_actions_deploy.pub >> ~/.ssh/authorized_keys
+   chmod 600 ~/.ssh/authorized_keys
+   
+   # Скопируйте приватный ключ с сервера (покажите его содержимое)
+   cat ~/.ssh/github_actions_deploy
+   # Скопируйте весь вывод и сохраните локально
+   
+   # Или скопируйте файл на локальную машину через scp:
+   # scp user@your-server-ip:~/.ssh/github_actions_deploy ~/.ssh/
    ```
 
 ### Настройка в GitHub:
@@ -53,9 +90,23 @@
 2. Добавьте следующие секреты:
    - `SERVER_HOST` - IP адрес или домен вашего сервера
    - `SERVER_USER` - имя пользователя для SSH (например, `root` или `ubuntu`)
-   - `SERVER_SSH_KEY` - приватный SSH ключ для подключения к серверу
+   - `SERVER_SSH_KEY` - **приватный** SSH ключ для подключения к серверу
+     - Скопируйте весь ключ, включая строки `-----BEGIN OPENSSH PRIVATE KEY-----` и `-----END OPENSSH PRIVATE KEY-----`
+     - Если использовали Вариант A выше, это содержимое `~/.ssh/github_actions_deploy`
+     - Если использовали Вариант B, это содержимое `~/.ssh/github_actions_deploy` с сервера
    - `SERVER_PORT` - порт SSH (обычно 22, можно не указывать)
    - `SERVER_DEPLOY_PATH` - путь к проекту на сервере (например, `~/yandexpromptnight`)
+
+   **Как скопировать приватный ключ с сервера:**
+   ```bash
+   # Способ 1: Показать содержимое файла
+   ssh user@your-server-ip "cat ~/.ssh/github_actions_deploy"
+   # Скопируйте весь вывод
+   
+   # Способ 2: Скачать файл через scp
+   scp user@your-server-ip:~/.ssh/github_actions_deploy ~/Downloads/
+   # Затем откройте файл и скопируйте содержимое
+   ```
 
 3. После каждого push в ветку `main` или `master` будет автоматически запускаться деплой.
 
