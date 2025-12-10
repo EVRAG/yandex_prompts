@@ -81,6 +81,18 @@
   }
 }
 
+.questionText {
+  width: 100%;
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  font-size: 17px;
+  line-height: 28px;
+  color: black;
+  margin-bottom: 12px;
+  margin-top: 0;
+}
+
 .answers {
   display: grid;
   grid-template-columns: repeat(2, 1fr);

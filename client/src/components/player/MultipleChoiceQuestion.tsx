@@ -9,7 +9,7 @@ interface MultipleChoiceQuestionProps {
   playerName: string;
   playerScore: number;
   hasSubmitted?: boolean;
-  questionNumber?: number | null;
+  questionNumber?: number | null; // Deprecated: используйте stage.questionNumberLabel
 }
 
 export function MultipleChoiceQuestion({
@@ -83,7 +83,11 @@ export function MultipleChoiceQuestion({
                 <img src="/images/points.svg" alt="" />
               </div>
             </div>
-            {questionNumber && <div className={s.questionNumber}>Вопрос {questionNumber}</div>}
+            {(stage.questionNumberLabel || questionNumber) && (
+              <div className={s.questionNumber}>
+                {stage.questionNumberLabel || `Вопрос ${questionNumber}`}
+              </div>
+            )}
           </div>
           <div className={s.right}>
             {timeLeft !== null && stage.startTime && stage.timeLimitSeconds && (
@@ -108,6 +112,11 @@ export function MultipleChoiceQuestion({
             ) : (
               <img className={s.questionImage} src={stage.imageUrl} alt="Question image" />
             )
+          )}
+          {stage.showQuestionTextOnMobile !== false && stage.questionText && (
+            <div className={s.questionText}>
+              {stage.questionText}
+            </div>
           )}
           <div className={s.answers}>
             {stage.answerOptions.map((answer, index) => {

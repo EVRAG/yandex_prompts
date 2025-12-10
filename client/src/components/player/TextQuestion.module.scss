@@ -81,6 +81,18 @@
   }
 }
 
+.questionText {
+  width: 100%;
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  font-size: 17px;
+  line-height: 28px;
+  color: black;
+  margin-bottom: 12px;
+  margin-top: 0;
+}
+
 .correctAnswer {
   width: 100%;
   background: #7A55FF;
@@ -90,7 +102,7 @@
   line-height: 28px;
   color: white;
   margin-bottom: 12px;
-  margin-top: 26px;
+  margin-top: 0;
 }
 
 .textarea {

@@ -22,6 +22,8 @@
       "displayAnswerOptionsFontSize": 36,
       "displayQuestionTitle": "Выберите правильный вариант промта",
       "displayAnswerRevealedTitle": "Правильный ответ",
+      "showQuestionTextOnMobile": true,
+      "questionNumberLabel": "Вопрос 1/15",
       "answerOptions": [
         {
           "text": "Что делать если хлеб становится мягким?",
@@ -53,6 +55,8 @@
       "displayAnswerOptionsFontSize": 30,
       "displayQuestionTitle": "Выберите правильный вариант промта",
       "displayAnswerRevealedTitle": "Правильный ответ",
+      "showQuestionTextOnMobile": true,
+      "questionNumberLabel": "Вопрос 2/15",
       "answerOptions": [
         {
           "text": "Объясни как ребёнку, что такое двухфакторная аутентификации?",
@@ -80,7 +84,9 @@
       "referenceAnswer": "Напиши короткое поздравление с днём рождения для Пети",
       "timeLimitSeconds": 30,
       "displayQuestionTextFontSize": 48,
-      "displayAnswerFontSize": 36
+      "displayAnswerFontSize": 36,
+      "showQuestionTextOnMobile": true,
+      "questionNumberLabel": "Вопрос 3/15"
     },
     {
       "id": "question_4",
@@ -90,7 +96,9 @@
       "referenceAnswer": "Напиши простыми словами 5 причин начать бегать по утрам",
       "timeLimitSeconds": 30,
       "displayQuestionTextFontSize": 20,
-      "displayAnswerFontSize": 32
+      "displayAnswerFontSize": 32,
+      "showQuestionTextOnMobile": true,
+      "questionNumberLabel": "Вопрос 4/15"
     },
     {
       "id": "question_5",
@@ -100,7 +108,9 @@
       "referenceAnswer": "Ты – коуч по продуктивности. Дай один практический совет начинающему.",
       "timeLimitSeconds": 30,
       "displayQuestionTextFontSize": 24,
-      "displayAnswerFontSize": 32
+      "displayAnswerFontSize": 32,
+      "showQuestionTextOnMobile": true,
+      "questionNumberLabel": "Вопрос 5/15"
     },
     {
       "id": "question_6",
@@ -110,7 +120,9 @@
       "referenceAnswer": "Создай диалог между историческими личностями Леонардо да Винчи и Альбертом Эйнштейном на тему фейхоа.",
       "timeLimitSeconds": 30,
       "displayQuestionTextFontSize": 18,
-      "displayAnswerFontSize": 32
+      "displayAnswerFontSize": 32,
+      "showQuestionTextOnMobile": true,
+      "questionNumberLabel": "Вопрос 6/15"
     },
     {
       "id": "question_7",
@@ -120,7 +132,9 @@
       "referenceAnswer": "Придумай новогодний конкурс для компании людей разных возрастов. Он должен быть весёлым, подвижным, без сложного реквизита, с участием всех типов людей, с творчеством, юмором и новогодней тематикой. Опиши количество участников, время и ход игры.",
       "timeLimitSeconds": 30,
       "displayQuestionTextFontSize": 18,
-      "displayAnswerFontSize": 32
+      "displayAnswerFontSize": 32,
+      "showQuestionTextOnMobile": true,
+      "questionNumberLabel": "Вопрос 7/15"
     },
     {
       "id": "question_9",
@@ -135,6 +149,8 @@
       "displayAnswerOptionsFontSize": 36,
       "displayQuestionTitle": "Выберите правильный вариант промта",
       "displayAnswerRevealedTitle": "Правильный ответ",
+      "showQuestionTextOnMobile": true,
+      "questionNumberLabel": "Вопрос 8/15",
       "answerOptions": [
         {
           "text": "Кот ходит вокруг дуба, книжная иллюстрация",
@@ -167,6 +183,8 @@
       "displayAnswerOptionsFontSize": 30,
       "displayQuestionTitle": "Выберите правильный вариант промта",
       "displayAnswerRevealedTitle": "Правильный ответ",
+      "showQuestionTextOnMobile": true,
+      "questionNumberLabel": "Вопрос 9/15",
       "answerOptions": [
         {
           "text": "Городской зимний пейзаж, акварель",
@@ -195,7 +213,9 @@
       "referenceAnswer": "Городской пейзаж в стиле Ван Гога, вихревые облака, яркие цвета, насыщенные жёлтые и синие тона, улицы города.",
       "timeLimitSeconds": 30,
       "displayQuestionTextFontSize": 32,
-      "displayAnswerFontSize": 32
+      "displayAnswerFontSize": 32,
+      "showQuestionTextOnMobile": true,
+      "questionNumberLabel": "Вопрос 10/15"
     },
     {
       "id": "question_12",
@@ -206,7 +226,9 @@
       "referenceAnswer": "Тёплый ретро‑кадр: крупный план советской квартиры. все украшено блестящей мишурой и разноцветными новогодними шарами. По старому телевизору идет новогодняя программа. На ковре уютно устроился пушистый кот. Мягкое освещение, ощущение домашнего тепла и праздника, высокая детализация",
       "timeLimitSeconds": 30,
       "displayQuestionTextFontSize": 32,
-      "displayAnswerFontSize": 32
+      "displayAnswerFontSize": 32,
+      "showQuestionTextOnMobile": true,
+      "questionNumberLabel": "Вопрос 11/15"
     },
     {
       "id": "question_13",
@@ -217,7 +239,9 @@
       "referenceAnswer": "Офис, в котором работают снеговики‑клерки.\n\nСовременное светлое open space‑помещение с однотипными рабочими столами и перегородками. Большие окна, за ними — зимний город, идёт снег.\n\nСнеговики сидят за компьютерами, рядом кружки с горячим какао и кофе, бумажные стаканчики, стикеры, стопки документов. На них шарфы, шапки, морковки‑носы, на «лицах» — легкая усталость.\n\nАтмосфера как в сериалах «Офис» или «Разделение»: сероватая палитра, холодный офисный свет, немного абсурд и ирония над корпоративной рутиной. Стиль иллюстрации — полуреалистичный или киношный, с акцентом на выражения и настроение, минимум ярких новогодних красок.",
       "timeLimitSeconds": 30,
       "displayQuestionTextFontSize": 32,
-      "displayAnswerFontSize": 32
+      "displayAnswerFontSize": 32,
+      "showQuestionTextOnMobile": true,
+      "questionNumberLabel": "Вопрос 12/15"
     },
     {
       "id": "question_14",
@@ -232,6 +256,8 @@
       "displayAnswerOptionsFontSize": 30,
       "displayQuestionTitle": "Выберите правильный вариант промта",
       "displayAnswerRevealedTitle": "Правильный ответ",
+      "showQuestionTextOnMobile": true,
+      "questionNumberLabel": "Вопрос 13/15",
       "answerOptions": [
         {
           "text": "Собака ловит круг для плавания как пончик и надевает его на себя",
@@ -260,7 +286,9 @@
       "referenceAnswer": "Фон меняется на берег озера. Мужчина превращается из офисного работника в рыбака с удочкой. Мужчина достаёт удочку и закидывает её в воду. Мягкий белый свет, реалистичные пропорции, черты лица сохранены.",
       "timeLimitSeconds": 30,
       "displayQuestionTextFontSize": 32,
-      "displayAnswerFontSize": 32
+      "displayAnswerFontSize": 32,
+      "showQuestionTextOnMobile": true,
+      "questionNumberLabel": "Вопрос 14/15"
     },
     {
       "id": "question_16",
@@ -271,7 +299,9 @@
       "referenceAnswer": "Одной рукой парень достаёт телефон и прикладывает к уху, второй рукой берёт книгу. Сбоку появляются руки, первая держит ноутбук, третья рука держит половник, четвёртая рука держит камеру, пятая рука держит кружку.",
       "timeLimitSeconds": 30,
       "displayQuestionTextFontSize": 32,
-      "displayAnswerFontSize": 32
+      "displayAnswerFontSize": 32,
+      "showQuestionTextOnMobile": true,
+      "questionNumberLabel": "Вопрос 15/15"
     },
     {
       "id": "leaderboard",

@@ -17,6 +17,8 @@ export interface GameStageConfig {
   displayAnswerOptionsFontSize?: number; // Размер шрифта вариантов ответов на display странице (в px)
   displayQuestionTitle?: string; // Заголовок вопроса на display странице (например, "Какой правильный ответ?")
   displayAnswerRevealedTitle?: string; // Заголовок когда ответ раскрыт на display странице (например, "Правильный ответ")
+  showQuestionTextOnMobile?: boolean; // Показывать ли текст вопроса на мобильной версии (в белой плашке)
+  questionNumberLabel?: string; // Номер вопроса для отображения на мобильной версии (например, "Вопрос 8/15")
 }
 
 export interface GameConfig {
