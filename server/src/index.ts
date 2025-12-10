@@ -5,7 +5,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { createAdapter } from '@socket.io/redis-adapter';
 import { redis, redisSubscriber } from './redisClient';
-import { loadStateFromRedis, getState, setState, addPlayer, getPlayer, setStage, setStageStatus, getCurrentStage, addSubmission, getSubmissionsForStage, resetState, Player } from './gameState';
+import { loadStateFromRedis, getState, setState, addPlayer, getPlayer, setStage, setStageStatus, getCurrentStage, addSubmission, getSubmissionsForStage, resetState, Player, updateSubmission } from './gameState';
 import { moderateNickname } from './services/nicknameModeration';
 import { scoreQueue } from './queue/scoreQueue';
 import { Queue } from 'bullmq';
@@ -259,8 +259,15 @@ playerIo.on('connection', (socket) => {
     };
     addSubmission(submission);
     
-    // Trigger scoring if stage has reference answer/question
-    if (stage.questionText && stage.referenceAnswer) {
+    // If question has options, score locally (no LLM): correct => +10, else 0
+    if (stage.answerOptions && stage.answerOptions.length > 0) {
+      const matched = stage.answerOptions.find(opt => opt.text === answer);
+      const isCorrect = matched?.isCorrect === true;
+      const score = isCorrect ? 10 : 0;
+      const feedback = isCorrect ? 'Верно!' : 'Не верно!';
+      updateSubmission(submission.id, { score, feedback });
+    } else if (stage.questionText && stage.referenceAnswer) {
+      // Trigger scoring via LLM for text questions
       scoreQueue.add('score', {
         submissionId: submission.id,
         questionText: stage.questionText,
