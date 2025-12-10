@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import type { GameStage } from '@prompt-night/shared';
+import type { GameStage, Submission } from '@prompt-night/shared';
 import s from './MultipleChoiceQuestion.module.scss';
 import { Timer } from '../common/Timer';
+import { QuestionResult } from './QuestionResult';
 
 interface MultipleChoiceQuestionProps {
   stage: GameStage;
@@ -10,6 +11,7 @@ interface MultipleChoiceQuestionProps {
   playerScore: number;
   hasSubmitted?: boolean;
   questionNumber?: number | null; // Deprecated: используйте stage.questionNumberLabel
+  submission?: Submission; // Submission с score и feedback
 }
 
 export function MultipleChoiceQuestion({
@@ -19,6 +21,7 @@ export function MultipleChoiceQuestion({
   playerScore,
   hasSubmitted = false,
   questionNumber,
+  submission,
 }: MultipleChoiceQuestionProps) {
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
@@ -52,24 +55,46 @@ export function MultipleChoiceQuestion({
   };
 
   const handleButtonClick = () => {
-    if (selectedAnswer !== null && !hasSubmitted && stage.answerOptions && timeLeft !== null && timeLeft > 0) {
+    if (selectedAnswer !== null && !hasSubmitted && stage.answerOptions && stage.status === 'active') {
       const selectedOption = stage.answerOptions[selectedAnswer];
       onSubmit(selectedOption.text);
     }
   };
 
-  const isButtonActive = selectedAnswer !== null && !hasSubmitted && timeLeft !== null && timeLeft > 0;
+  const isButtonActive = selectedAnswer !== null && !hasSubmitted;
 
   if (!stage.answerOptions || stage.answerOptions.length === 0) {
     return null;
   }
+
+  const isFinished = stage.status === 'locked' || stage.status === 'revealed';
+  const timeoutNoAnswer = isFinished && !hasSubmitted && !submission;
+  const resultSubmission = submission ?? (timeoutNoAnswer ? { score: 0, feedback: 'время истекло' } : undefined);
 
   // Находим правильный ответ для подсветки
   const correctAnswerIndex = stage.answerOptions.findIndex(opt => opt.isCorrect);
   
   // Показываем правильный ответ если время истекло или ответ отправлен
   // После отправки экран остается тем же, просто подсвечивается правильный ответ
-  const shouldShowCorrect = hasSubmitted || (timeLeft !== null && timeLeft === 0) || stage.status === 'locked' || stage.status === 'revealed';
+  const shouldShowCorrect = hasSubmitted || isFinished;
+  
+  // Показываем экран результатов если таймер закончился (stage locked/revealed) и есть score
+  const shouldShowResult = isFinished && resultSubmission?.score !== undefined;
+  
+  // Показываем затемнение с плашкой если ответ отправлен, но таймер еще не закончился
+  const shouldShowWaiting = hasSubmitted && stage.status === 'active';
+
+  // Если показываем результаты - показываем компонент результатов
+  if (shouldShowResult && resultSubmission) {
+    return (
+      <QuestionResult
+        score={resultSubmission.score}
+        feedback={resultSubmission.feedback || ''}
+        playerName={playerName}
+        playerScore={playerScore}
+      />
+    );
+  }
 
   return (
     <div className={s.root}>
@@ -121,18 +146,15 @@ export function MultipleChoiceQuestion({
           <div className={s.answers}>
             {stage.answerOptions.map((answer, index) => {
               const isSelected = selectedAnswer === index;
-              const isCorrect = shouldShowCorrect && correctAnswerIndex === index;
-              // После отправки или истечения времени показываем правильный ответ (зеленый), выбранный остается фиолетовым
+              // Не показываем правильный ответ после отправки
               return (
                 <button
                   key={index}
                   className={`${s.answerCard} ${
                     isSelected && !shouldShowCorrect ? s.answerCard_selected : ''
-                  } ${
-                    isCorrect ? s.answerCard_correct : ''
                   }`}
                   onClick={() => handleAnswerClick(index)}
-                  disabled={shouldShowCorrect}
+                  disabled={shouldShowCorrect || shouldShowWaiting}
                 >
                   <span className={s.answerLetter}>{getLetter(index)}</span>
                   <span className={s.answerText}>{answer.text}</span>
@@ -142,14 +164,21 @@ export function MultipleChoiceQuestion({
           </div>
         </div>
       </div>
-      {!shouldShowCorrect && (
+      {!shouldShowCorrect && !shouldShowWaiting && (
         <button
           className={`${s.button} ${isButtonActive ? s.active : ''}`}
           onClick={handleButtonClick}
           disabled={!isButtonActive}
         >
-          Далее
+          Отправить
         </button>
+      )}
+      {shouldShowWaiting && (
+        <div className={s.overlay}>
+          <div className={s.waitingMessage}>
+            Ответ принят,<br />ожидайте результат
+          </div>
+        </div>
       )}
       <img className={s.img} src="/images/bg_mobile2.png" alt="bg" />
     </div>

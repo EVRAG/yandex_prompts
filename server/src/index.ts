@@ -121,15 +121,21 @@ function broadcastState() {
     leaderboard,
   };
 
-  // For players, send personalized state with their current score
+  // For players, send personalized state with their current score and their submission for current stage
   playerIo.sockets.forEach((socket) => {
     const { playerId } = socket.handshake.auth;
     if (playerId) {
       const player = getPlayer(playerId);
       if (player) {
+        // Find player's submission for current stage
+        const playerSubmission = state.submissions.find(
+          s => s.playerId === playerId && s.stageId === currentStage.id
+        );
+        
         socket.emit('state:update', {
           ...publicState,
           currentPlayer: { id: player.id, name: player.name, score: player.score },
+          submissions: playerSubmission ? [playerSubmission] : [], // Send only player's submission for current stage
         });
       } else {
         socket.emit('state:update', publicState);
@@ -179,11 +185,17 @@ playerIo.on('connection', (socket) => {
     .sort((a, b) => b.score - a.score)
     .slice(0, 100);
   
+  // Find player's submission for current stage if player exists
+  const playerSubmission = currentPlayer ? state.submissions.find(
+    s => s.playerId === currentPlayer.id && s.stageId === currentStage.id
+  ) : undefined;
+  
   socket.emit('state:update', { 
     currentStage, 
     playerCount: Object.keys(state.players).length,
     leaderboard,
     currentPlayer: currentPlayer ? { id: currentPlayer.id, name: currentPlayer.name, score: currentPlayer.score } : undefined,
+    submissions: playerSubmission ? [playerSubmission] : [],
   });
 
   socket.on('register', async ({ name }) => {
@@ -201,11 +213,18 @@ playerIo.on('connection', (socket) => {
     const leaderboard = Object.values(state.players)
       .sort((a, b) => b.score - a.score)
       .slice(0, 100);
+    
+    // Find player's submission for current stage
+    const playerSubmission = state.submissions.find(
+      s => s.playerId === newPlayerId && s.stageId === currentStage.id
+    );
+    
     socket.emit('state:update', {
       currentStage,
       playerCount: Object.keys(state.players).length,
       leaderboard,
       currentPlayer: { id: newPlayer.id, name: newPlayer.name, score: newPlayer.score },
+      submissions: playerSubmission ? [playerSubmission] : [],
     });
     
     broadcastState();
@@ -265,11 +284,18 @@ playerIo.on('connection', (socket) => {
       const leaderboard = Object.values(state.players)
         .sort((a, b) => b.score - a.score)
         .slice(0, 100);
+      
+      // Find player's submission for current stage
+      const playerSubmission = state.submissions.find(
+        s => s.playerId === pid && s.stageId === currentStage.id
+      );
+      
       socket.emit('state:update', {
         currentStage,
         playerCount: Object.keys(state.players).length,
         leaderboard,
         currentPlayer: { id: updatedPlayer.id, name: updatedPlayer.name, score: updatedPlayer.score },
+        submissions: playerSubmission ? [playerSubmission] : [], // Send only player's submission for current stage
       });
     }
     

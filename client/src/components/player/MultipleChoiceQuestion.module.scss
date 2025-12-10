@@ -51,7 +51,7 @@
 }
 
 .questionNumber {
-  font-size: 21px;
+  font-size: 15px;
   font-weight: 500;
 }
 
@@ -91,6 +91,7 @@
   color: black;
   margin-bottom: 12px;
   margin-top: 0;
+  white-space: pre-line;
 }
 
 .answers {
@@ -175,4 +176,30 @@
 
 .active {
   opacity: 1;
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 100;
+}
+
+.waitingMessage {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  width: calc(100% - 66px);
+  background: #DDD4FF;
+  border-radius: 12px;
+  padding: 16px;
+  font-size: 17px;
+  font-weight: 400;
+  line-height: 20px;
+  color: black;
 }

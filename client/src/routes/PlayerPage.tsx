@@ -6,6 +6,7 @@ import { MultipleChoiceQuestion } from '../components/player/MultipleChoiceQuest
 import { WaitingScreen } from '../components/player/WaitingScreen';
 import { Leaderboard } from '../components/player/Leaderboard';
 import { SERVER_URL } from '../lib/constants';
+import type { Submission } from '@prompt-night/shared';
 
 export default function PlayerPage() {
   const [playerId, setPlayerId] = useState(() => localStorage.getItem('playerId'));
@@ -117,6 +118,11 @@ export default function PlayerPage() {
   if (currentStage.type === 'question') {
     const hasSubmitted = submittedStages.has(currentStage.id);
     
+    // Находим submission для текущего игрока и текущего stage
+    const playerSubmission = state.submissions?.find(
+      (s: Submission) => s.playerId === currentPlayer?.id && s.stageId === currentStage.id
+    );
+    
     // Определяем номер вопроса: находим индекс в массиве stages конфига
     const questionNumber = config?.stages
       .filter(s => s.type === 'question')
@@ -135,6 +141,7 @@ export default function PlayerPage() {
           playerScore={currentPlayer?.score || 0}
           hasSubmitted={hasSubmitted}
           questionNumber={displayNumber}
+          submission={playerSubmission}
         />
       );
     } else {
@@ -146,6 +153,7 @@ export default function PlayerPage() {
           playerScore={currentPlayer?.score || 0}
           hasSubmitted={hasSubmitted}
           questionNumber={displayNumber}
+          submission={playerSubmission}
         />
       );
     }

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import type { GameStage } from '@prompt-night/shared';
+import type { GameStage, Submission } from '@prompt-night/shared';
 import s from './TextQuestion.module.scss';
 import { Timer } from '../common/Timer';
+import { QuestionResult } from './QuestionResult';
 
 interface TextQuestionProps {
   stage: GameStage;
@@ -10,6 +11,7 @@ interface TextQuestionProps {
   playerScore: number;
   hasSubmitted?: boolean;
   questionNumber?: number | null; // Deprecated: используйте stage.questionNumberLabel
+  submission?: Submission; // Submission с score и feedback
 }
 
 export function TextQuestion({
@@ -19,6 +21,7 @@ export function TextQuestion({
   playerScore,
   hasSubmitted = false,
   questionNumber,
+  submission,
 }: TextQuestionProps) {
   const [answer, setAnswer] = useState('');
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
@@ -47,15 +50,39 @@ export function TextQuestion({
   };
 
   const handleButtonClick = () => {
-    if (answer.trim() && !hasSubmitted && timeLeft !== null && timeLeft > 0) {
+    if (answer.trim() && !hasSubmitted && stage.status === 'active') {
       onSubmit(answer.trim());
     }
   };
 
-  const isButtonActive = answer.trim().length > 0 && !hasSubmitted && timeLeft !== null && timeLeft > 0;
+  const isButtonActive = answer.trim().length > 0 && !hasSubmitted;
+
+  const isFinished = stage.status === 'locked' || stage.status === 'revealed';
+  const timeoutNoAnswer = isFinished && !hasSubmitted && !submission;
+
+  // Подставляем результат 0 баллов, если время вышло и ответа не было
+  const resultSubmission = submission ?? (timeoutNoAnswer ? { score: 0, feedback: 'время истекло' } : undefined);
 
   // Показываем правильный ответ если время истекло или ответ отправлен
-  const shouldShowCorrect = hasSubmitted || (timeLeft !== null && timeLeft === 0) || stage.status === 'locked' || stage.status === 'revealed';
+  const shouldShowCorrect = hasSubmitted || isFinished;
+  
+  // Показываем экран результатов если таймер закончился (stage locked/revealed) и есть score
+  const shouldShowResult = isFinished && resultSubmission?.score !== undefined;
+  
+  // Показываем затемнение с плашкой если ответ отправлен, но таймер еще не закончился
+  const shouldShowWaiting = hasSubmitted && stage.status === 'active';
+
+  // Если показываем результаты - показываем компонент результатов
+  if (shouldShowResult && resultSubmission) {
+    return (
+      <QuestionResult
+        score={resultSubmission.score}
+        feedback={resultSubmission.feedback || ''}
+        playerName={playerName}
+        playerScore={playerScore}
+      />
+    );
+  }
 
   return (
     <div className={s.root}>
@@ -104,11 +131,6 @@ export function TextQuestion({
               {stage.questionText}
             </div>
           )}
-          {shouldShowCorrect && stage.referenceAnswer && (
-            <div className={s.correctAnswer}>
-              {stage.referenceAnswer}
-            </div>
-          )}
           <textarea
             placeholder="Ваш ответ..."
             className={s.textarea}
@@ -118,14 +140,21 @@ export function TextQuestion({
           />
         </div>
       </div>
-      {!shouldShowCorrect && (
+      {!shouldShowCorrect && !shouldShowWaiting && (
         <button
           className={`${s.button} ${isButtonActive ? s.active : ''}`}
           onClick={handleButtonClick}
           disabled={!isButtonActive}
         >
-          Далее
+          Отправить
         </button>
+      )}
+      {shouldShowWaiting && (
+        <div className={s.overlay}>
+          <div className={s.waitingMessage}>
+            Ответ принят,<br />ожидайте результат
+          </div>
+        </div>
       )}
       <img className={s.img} src="/images/bg_mobile2.png" alt="bg" />
     </div>
