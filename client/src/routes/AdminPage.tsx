@@ -10,6 +10,11 @@ export default function AdminPage() {
     if (secret) localStorage.setItem('adminSecret', secret);
   }, [secret]);
 
+  useEffect(() => {
+    console.log('[AdminPage] Secret:', secret ? 'SET' : 'NOT SET', 'Length:', secret.length);
+    console.log('[AdminPage] ADMIN_SECRET from env:', ADMIN_SECRET ? 'SET' : 'NOT SET');
+  }, [secret]);
+
   if (!secret) {
     return (
       <div className="p-4">
@@ -34,7 +39,7 @@ export default function AdminPage() {
     );
   }
 
-  const { currentStage, playerCount, players, leaderboard } = state;
+  const { currentStage, playerCount } = state;
 
   const handleReset = () => {
     if (confirm('Вы уверены? Это удалит всех игроков, все ответы и баллы. Игра вернется к начальному состоянию.')) {
@@ -42,13 +47,82 @@ export default function AdminPage() {
     }
   };
 
+  const handleStartStage = (stageId: string) => {
+    socket?.emit('stage:set', stageId);
+    socket?.emit('stage:status', 'active');
+  };
+
+  const questionStages = config.stages.filter(stage => stage.type === 'question');
+  const registrationStage = config.stages.find(stage => stage.type === 'registration');
+  const leaderboardStage = config.stages.find(stage => stage.type === 'leaderboard');
+
+  const renderStageCard = (stage: typeof config.stages[0], buttonText: string) => {
+    const isActive = currentStage.id === stage.id && currentStage.status === 'active';
+    return (
+      <li key={stage.id} className="col-span-1 divide-y divide-gray-200 rounded-lg bg-white shadow-sm">
+        <div className="flex w-full items-center justify-between space-x-6 p-6">
+          <div className="flex-1 truncate">
+            <div className="flex items-center space-x-3">
+              <h3 className="truncate text-sm font-medium text-gray-900">{stage.title}</h3>
+              {isActive && (
+                <span className="inline-flex shrink-0 items-center rounded-full bg-green-50 px-1.5 py-0.5 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
+                  Активен
+                </span>
+              )}
+            </div>
+            <p className="mt-1 truncate text-sm text-gray-500">
+              {stage.questionText || (stage.type === 'registration' ? 'Экран регистрации игроков' : stage.type === 'leaderboard' ? 'Таблица результатов' : 'Нет описания')}
+            </p>
+            {stage.timeLimitSeconds && (
+              <p className="mt-1 text-xs text-gray-400">
+                Время: {stage.timeLimitSeconds}с
+              </p>
+            )}
+          </div>
+        </div>
+        <div>
+          <div className="-mt-px flex divide-x divide-gray-200">
+            <div className="flex w-0 flex-1">
+              <button
+                onClick={() => handleStartStage(stage.id)}
+                disabled={isActive}
+                className={`relative -mr-px inline-flex w-0 flex-1 items-center justify-center gap-x-3 rounded-bl-lg border border-transparent py-4 text-sm font-semibold ${
+                  isActive
+                    ? 'text-gray-400 cursor-not-allowed bg-gray-50'
+                    : 'text-gray-900 hover:bg-gray-50'
+                }`}
+              >
+                <svg
+                  className="h-5 w-5 text-gray-400"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0zm10-3a1 1 0 011 1v5a1 1 0 11-2 0V8a1 1 0 011-1z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                {isActive ? 'Запущен' : buttonText}
+              </button>
+            </div>
+          </div>
+        </div>
+      </li>
+    );
+  };
+
   return (
-    <div className="p-4 max-w-4xl mx-auto">
+    <div className="p-4 max-w-7xl mx-auto">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Admin Panel</h1>
         <div className="flex items-center gap-4">
           <div className="text-sm">
             Status: {isConnected ? 'Online' : 'Offline'} | Players: {playerCount}
+            {currentStage.type !== 'registration' && currentStage.type !== 'leaderboard' && (
+              <span className="ml-2 text-blue-600">| Активен: {currentStage.title}</span>
+            )}
           </div>
           <button
             onClick={handleReset}
@@ -59,90 +133,11 @@ export default function AdminPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white p-4 rounded shadow">
-          <h2 className="text-xl font-bold mb-4">Stages</h2>
-          <div className="space-y-2">
-            {config.stages.map(stage => (
-              <div 
-                key={stage.id}
-                className={`p-3 rounded border flex justify-between items-center ${
-                    currentStage.id === stage.id ? 'bg-blue-50 border-blue-500' : 'hover:bg-gray-50'
-                }`}
-              >
-                <div>
-                  <div className="font-medium">{stage.title}</div>
-                  <div className="text-xs text-gray-500">{stage.type}</div>
-                </div>
-                {currentStage.id === stage.id ? (
-                  <span className="text-blue-600 font-bold text-sm">Active</span>
-                ) : (
-                  <button 
-                    onClick={() => socket?.emit('stage:set', stage.id)}
-                    className="bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded text-sm"
-                  >
-                    Activate
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="space-y-6">
-          <div className="bg-white p-4 rounded shadow">
-            <h2 className="text-xl font-bold mb-4">Current Stage Control</h2>
-            <div className="mb-4">
-                <div className="font-bold text-lg">{currentStage.title}</div>
-                <div className="text-gray-600 mb-2">Status: {currentStage.status}</div>
-                {currentStage.timeLimitSeconds && (
-                    <div className="text-sm text-gray-500">Time Limit: {currentStage.timeLimitSeconds}s</div>
-                )}
-            </div>
-
-            <div className="flex gap-2">
-                <button 
-                    onClick={() => socket?.emit('stage:status', 'pending')}
-                    className="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 px-3 py-1 rounded"
-                >
-                    Reset (Pending)
-                </button>
-                <button 
-                    onClick={() => socket?.emit('stage:status', 'active')}
-                    className="bg-green-100 hover:bg-green-200 text-green-800 px-3 py-1 rounded"
-                >
-                    Start / Resume
-                </button>
-                <button 
-                    onClick={() => socket?.emit('stage:status', 'locked')}
-                    className="bg-red-100 hover:bg-red-200 text-red-800 px-3 py-1 rounded"
-                >
-                    Lock
-                </button>
-                <button 
-                    onClick={() => socket?.emit('stage:status', 'revealed')}
-                    className="bg-blue-100 hover:bg-blue-200 text-blue-800 px-3 py-1 rounded"
-                >
-                    Reveal Answer
-                </button>
-            </div>
-          </div>
-
-          <div className="bg-white p-4 rounded shadow">
-              <h2 className="text-xl font-bold mb-4">Leaderboard Preview</h2>
-              {/* Simple list of top 5 */}
-              {(leaderboard || (players && Object.values(players).sort((a, b) => b.score - a.score)))
-                ?.slice(0, 5)
-                .map((p, i) => (
-                    <div key={p.id} className="flex justify-between py-1 border-b last:border-0">
-                        <span>{i + 1}. {p.name}</span>
-                        <span className="font-mono">{p.score}</span>
-                    </div>
-                ))
-              }
-          </div>
-        </div>
-      </div>
+      <ul role="list" className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {registrationStage && renderStageCard(registrationStage, 'Запуск регистрации')}
+        {questionStages.map(stage => renderStageCard(stage, 'Запуск вопроса'))}
+        {leaderboardStage && renderStageCard(leaderboardStage, 'Показать результаты')}
+      </ul>
     </div>
   );
 }

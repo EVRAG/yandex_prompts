@@ -13,8 +13,18 @@ import { gameConfig } from '@prompt-night/shared';
 
 import { rateLimit } from 'express-rate-limit';
 import { log } from './logger';
+import { join } from 'path';
 
-dotenv.config();
+// Загружаем .env из корня проекта (на уровень выше от server/)
+// В скомпилированном коде __dirname будет server/dist, поэтому идем на 2 уровня выше
+// В dev режиме с ts-node-dev __dirname будет server/src, поэтому тоже на 2 уровня выше
+dotenv.config({ path: join(__dirname, '../../.env') });
+
+// Проверка загрузки переменных (только для отладки)
+if (process.env.NODE_ENV !== 'production') {
+  console.log('[env] YANDEX_API_KEY:', process.env.YANDEX_API_KEY ? `SET (${process.env.YANDEX_API_KEY.length} chars)` : 'NOT SET');
+  console.log('[env] YANDEX_FOLDER_ID:', process.env.YANDEX_FOLDER_ID || 'NOT SET');
+}
 
 const app = express();
 app.use(cors());
@@ -271,10 +281,15 @@ playerIo.on('connection', (socket) => {
 // Admin Connection
 adminIo.on('connection', (socket) => {
   const { secret } = socket.handshake.auth;
+  const expectedSecret = process.env.ADMIN_SECRET;
   console.log('[admin] Connection attempt, secret provided:', !!secret);
+  console.log('[admin] Secret length:', secret?.length || 0, 'Expected length:', expectedSecret?.length || 0);
+  console.log('[admin] Secrets match:', secret === expectedSecret);
   
-  if (secret !== process.env.ADMIN_SECRET) {
+  if (secret !== expectedSecret) {
     console.log('[admin] Invalid secret, disconnecting');
+    console.log('[admin] Received:', secret);
+    console.log('[admin] Expected:', expectedSecret);
     socket.disconnect();
     return;
   }

@@ -1,3 +1,8 @@
+export interface AnswerOption {
+  text: string;
+  isCorrect: boolean;
+}
+
 export interface GameStageConfig {
   id: string;
   title: string;
@@ -5,6 +10,11 @@ export interface GameStageConfig {
   questionText?: string;
   referenceAnswer?: string; // Hidden from client until revealed
   timeLimitSeconds?: number;
+  answerOptions?: AnswerOption[]; // Если есть - вопрос с вариантами ответов, иначе - текстовый ввод
+  imageUrl?: string; // URL изображения для вопроса (опционально)
+  displayQuestionTextFontSize?: number; // Размер шрифта текста вопроса на display странице (в px)
+  displayAnswerFontSize?: number; // Размер шрифта правильного ответа на display странице (в px)
+  displayAnswerOptionsFontSize?: number; // Размер шрифта вариантов ответов на display странице (в px)
 }
 
 export interface GameConfig {

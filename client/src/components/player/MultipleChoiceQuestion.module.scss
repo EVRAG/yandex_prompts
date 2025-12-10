@@ -1,0 +1,166 @@
+.root {
+  width: 100%;
+  display: flex;
+  z-index: 2;
+  padding: 18px 14px;
+  min-height: 100vh;
+  padding-bottom: 100px;
+}
+
+.img {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 1;
+}
+
+.wrapper {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+  z-index: 3;
+  flex-direction: column;
+}
+
+.header {
+  width: 100%;
+  font-size: 21px;
+  font-weight: 500;
+  line-height: 21px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.left {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  color: white;
+}
+
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.questionNumber {
+  font-size: 21px;
+  font-weight: 500;
+}
+
+.points {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  box-shadow: 0px 8px 32px 0px rgba(0, 0, 0, 0.2);
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 100px;
+  padding: 6px 12px;
+  color: white;
+}
+
+.right {
+  color: white;
+}
+
+.content {
+  margin-top: 26px;
+  width: 100%;
+
+  .questionImage {
+    width: 100%;
+    border-radius: 24px;
+    margin-bottom: 26px;
+  }
+}
+
+.answers {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-top: 26px;
+  width: 100%;
+}
+
+.answerCard {
+  position: relative;
+  background: white;
+  border: none;
+  border-radius: 12px;
+  padding: 16px;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  min-height: 100px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  &:hover:not(:disabled) {
+    opacity: 0.9;
+  }
+
+  &_selected {
+    background: #DDD4FF;
+  }
+
+  &_correct {
+    background: #7A55FF;
+    color: white;
+
+    .answerLetter,
+    .answerText {
+      color: white;
+    }
+  }
+
+  &:disabled {
+    cursor: default;
+  }
+}
+
+.answerLetter {
+  font-size: 17px;
+  font-weight: 400;
+  color: black;
+}
+
+.answerText {
+  font-size: 17px;
+  font-weight: 400;
+  color: black;
+  line-height: 24px;
+}
+
+.button {
+  position: fixed;
+  left: 14px;
+  right: 14px;
+  z-index: 10;
+  width: calc(100% - 28px);
+  height: 64px;
+  color: white;
+  background: #7A55FF;
+  opacity: 0.5;
+  border-radius: 100px;
+  bottom: 23px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+
+  &:disabled {
+    cursor: not-allowed;
+  }
+}
+
+.active {
+  opacity: 1;
+}

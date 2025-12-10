@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useRealtime } from '../hooks/useRealtime';
+import { DisplayRegistration } from '../components/display/DisplayRegistration';
+import { DisplayMultipleChoiceQuestion } from '../components/display/DisplayMultipleChoiceQuestion';
+import { DisplayLeaderboard } from '../components/display/DisplayLeaderboard';
 
 export default function DisplayPage() {
   const { state } = useRealtime('display');
@@ -10,49 +13,60 @@ export default function DisplayPage() {
 
   return (
     <div className="bg-black min-h-screen text-white font-sans overflow-hidden">
-      <div className="absolute top-4 right-4 text-gray-500">
-        Stage: {currentStage.title}
-      </div>
 
       {currentStage.type === 'question' && (
-        <div className="flex flex-col items-center justify-center min-h-screen p-8 text-center">
-          <h1 className="text-5xl md:text-7xl font-bold mb-12 leading-tight max-w-5xl">
-            {currentStage.questionText}
-          </h1>
-          
-          {currentStage.status === 'active' && currentStage.startTime && (
-             <Timer startTime={currentStage.startTime} duration={currentStage.timeLimitSeconds || 60} />
-          )}
+        <>
+          {currentStage.answerOptions && currentStage.answerOptions.length > 0 ? (
+            <DisplayMultipleChoiceQuestion stage={currentStage} />
+          ) : (
+            <div className="flex flex-col items-center justify-center min-h-screen p-8 text-center">
+              <h1 
+                className={`font-bold mb-12 leading-tight max-w-5xl ${
+                  !currentStage.displayQuestionTextFontSize ? 'text-5xl md:text-7xl' : ''
+                }`}
+                style={{
+                  fontSize: currentStage.displayQuestionTextFontSize 
+                    ? `${currentStage.displayQuestionTextFontSize}px` 
+                    : undefined
+                }}
+              >
+                {currentStage.questionText}
+              </h1>
+              
+              {currentStage.status === 'active' && currentStage.startTime && (
+                 <Timer startTime={currentStage.startTime} duration={currentStage.timeLimitSeconds || 60} />
+              )}
 
-          {currentStage.status === 'revealed' && (
-            <div className="mt-12 bg-yandex-green text-black p-8 rounded-2xl animate-fade-in">
-              <div className="text-xl mb-2 font-bold opacity-75">Правильный ответ:</div>
-              <div className="text-4xl md:text-5xl font-bold">
-                {currentStage.referenceAnswer}
-              </div>
+              {currentStage.status === 'revealed' && (
+                <div className="mt-12 bg-yandex-green text-black p-8 rounded-2xl animate-fade-in">
+                  <div className="text-xl mb-2 font-bold opacity-75">Правильный ответ:</div>
+                  <div 
+                    className={`font-bold ${
+                      !currentStage.displayAnswerFontSize ? 'text-4xl md:text-5xl' : ''
+                    }`}
+                    style={{
+                      fontSize: currentStage.displayAnswerFontSize 
+                        ? `${currentStage.displayAnswerFontSize}px` 
+                        : undefined
+                    }}
+                  >
+                    {currentStage.referenceAnswer}
+                  </div>
+                </div>
+              )}
             </div>
           )}
-        </div>
+        </>
       )}
 
-      {(currentStage.type === 'leaderboard' || currentStage.type === 'registration' || currentStage.type === 'info') && (
-         <div className="flex flex-col items-center justify-center min-h-screen p-8">
-            <h1 className="text-4xl font-bold mb-8">Турнирная таблица</h1>
-            <div className="w-full max-w-3xl">
-                {(leaderboard || (players && Object.values(players).sort((a, b) => b.score - a.score)))
-                    ?.slice(0, 10)
-                    .map((p, i) => (
-                        <div key={p.id} className="flex justify-between items-center py-4 border-b border-gray-800 text-2xl">
-                            <div className="flex items-center gap-4">
-                                <span className="w-8 text-gray-500 font-mono">{i + 1}</span>
-                                <span>{p.name}</span>
-                            </div>
-                            <span className="font-bold text-yandex-green">{p.score}</span>
-                        </div>
-                    ))
-                }
-            </div>
-         </div>
+      {currentStage.type === 'registration' && (
+        <DisplayRegistration />
+      )}
+
+      {(currentStage.type === 'leaderboard' || currentStage.type === 'info') && (
+        <DisplayLeaderboard 
+          leaderboard={leaderboard || (players ? Object.values(players).sort((a, b) => b.score - a.score) : [])}
+        />
       )}
     </div>
   );

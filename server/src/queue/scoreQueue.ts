@@ -1,6 +1,6 @@
 import { Worker, Queue } from 'bullmq';
 import { redis } from '../redisClient';
-import { getState, getSubmissionsForStage, updatePlayerScore, addSubmission, Submission, getPlayer, setState, loadStateFromRedis } from '../gameState';
+import { getState, getSubmissionsForStage, updatePlayerScore, addSubmission, Submission, getPlayer, setState, loadStateFromRedis, updateSubmission } from '../gameState';
 import { getYandexClient, getModelId } from '../services/yandexClient';
 import { answerScoringPrompt } from '../prompts/answerScoring';
 import { gameConfig } from '@prompt-night/shared';
@@ -77,7 +77,6 @@ const worker = new Worker('scoring', async (job) => {
     console.log(`[scoring] Feedback: ${feedback}`);
 
     // Update state
-    const { updateSubmission } = await import('../gameState.js');
     updateSubmission(submissionId, { score, feedback });
     
     // Trigger broadcast via Redis pub/sub (works even if worker is in separate process)

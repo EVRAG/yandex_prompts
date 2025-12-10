@@ -1,13 +1,17 @@
 import { useState, useEffect } from 'react';
 import { useRealtime } from '../hooks/useRealtime';
 import { Registration } from '../components/player/Registration';
-import { Question } from '../components/player/Question';
+import { TextQuestion } from '../components/player/TextQuestion';
+import { MultipleChoiceQuestion } from '../components/player/MultipleChoiceQuestion';
+import { WaitingScreen } from '../components/player/WaitingScreen';
+import { Leaderboard } from '../components/player/Leaderboard';
 import { SERVER_URL } from '../lib/constants';
 
 export default function PlayerPage() {
   const [playerId, setPlayerId] = useState(() => localStorage.getItem('playerId'));
-  const { socket, state, isConnected } = useRealtime('player', playerId ? { playerId } : undefined);
+  const { socket, state, isConnected, config } = useRealtime('player', playerId ? { playerId } : undefined);
   const [isRegistering, setIsRegistering] = useState(false);
+  const [registrationError, setRegistrationError] = useState<string | null>(null);
   const [submittedStages, setSubmittedStages] = useState<Set<string>>(new Set());
 
   useEffect(() => {
@@ -16,6 +20,7 @@ export default function PlayerPage() {
         localStorage.setItem('playerId', playerId);
         setPlayerId(playerId);
         setIsRegistering(false);
+        setRegistrationError(null);
         setSubmittedStages(new Set()); // Reset submitted stages on new registration
       });
 
@@ -27,7 +32,7 @@ export default function PlayerPage() {
       });
 
       socket.on('error', (err: string) => {
-        alert(err);
+        setRegistrationError(err);
         setIsRegistering(false);
       });
 
@@ -53,6 +58,7 @@ export default function PlayerPage() {
 
   const handleRegister = async (name: string) => {
     setIsRegistering(true);
+    setRegistrationError(null);
     // Moderate via REST
     try {
       const res = await fetch(`${SERVER_URL}/moderate/nickname`, {
@@ -72,11 +78,11 @@ export default function PlayerPage() {
             socket?.emit('register', { name });
         }
       } else {
-        alert(`Никнейм недопустим: ${data.reason}`);
+        setRegistrationError(`Никнейм недопустим: ${data.reason}`);
         setIsRegistering(false);
       }
     } catch (e) {
-      alert('Ошибка соединения');
+      setRegistrationError('Ошибка соединения');
       setIsRegistering(false);
     }
   };
@@ -94,90 +100,65 @@ export default function PlayerPage() {
   // If no playerId or player doesn't exist on server (after reset), show registration
   // Also show registration if stage is registration and player not registered
   if (!playerId || !currentPlayer || (currentStage.type === 'registration' && !currentPlayer)) {
-    return <Registration onRegister={handleRegister} isSubmitting={isRegistering} />;
+    return (
+      <Registration 
+        onRegister={handleRegister} 
+        isSubmitting={isRegistering} 
+        error={registrationError}
+        onErrorDismiss={() => setRegistrationError(null)}
+      />
+    );
   }
 
-  // Score display component
-  const ScoreDisplay = () => {
-    if (!currentPlayer) return null;
-    return (
-      <div className="fixed top-4 right-4 bg-white rounded-lg shadow-md px-4 py-2 border-2 border-yandex-green z-50">
-        <div className="text-sm text-gray-600">Ваши баллы</div>
-        <div className="text-2xl font-bold text-yandex-green">{currentPlayer.score}</div>
-      </div>
-    );
-  };
-
   if (currentStage.type === 'registration' || currentStage.type === 'info') {
-    return (
-      <>
-        <ScoreDisplay />
-        <div className="flex flex-col items-center justify-center min-h-screen p-4 text-center">
-          <h1 className="text-2xl font-bold mb-4">{currentStage.title}</h1>
-          <p>Ожидайте начала игры...</p>
-          <div className="mt-8 text-sm text-gray-500">
-              {state.playerCount} участников онлайн
-          </div>
-        </div>
-      </>
-    );
+    return <WaitingScreen playerName={currentPlayer?.name || 'Игрок'} />;
   }
 
   if (currentStage.type === 'question') {
     const hasSubmitted = submittedStages.has(currentStage.id);
-    return (
-      <>
-        <ScoreDisplay />
-        <Question stage={currentStage} onSubmit={handleSubmit} hasSubmitted={hasSubmitted} />
-      </>
-    );
+    
+    // Определяем номер вопроса: находим индекс в массиве stages конфига
+    const questionNumber = config?.stages
+      .filter(s => s.type === 'question')
+      .findIndex(s => s.id === currentStage.id) ?? -1;
+    const displayNumber = questionNumber >= 0 ? questionNumber + 1 : null;
+    
+    // Определяем тип вопроса: если есть answerOptions - множественный выбор, иначе - текстовый ввод
+    const hasAnswerOptions = currentStage.answerOptions && currentStage.answerOptions.length > 0;
+    
+    if (hasAnswerOptions) {
+      return (
+        <MultipleChoiceQuestion
+          stage={currentStage}
+          onSubmit={handleSubmit}
+          playerName={currentPlayer?.name || 'Игрок'}
+          playerScore={currentPlayer?.score || 0}
+          hasSubmitted={hasSubmitted}
+          questionNumber={displayNumber}
+        />
+      );
+    } else {
+      return (
+        <TextQuestion
+          stage={currentStage}
+          onSubmit={handleSubmit}
+          playerName={currentPlayer?.name || 'Игрок'}
+          playerScore={currentPlayer?.score || 0}
+          hasSubmitted={hasSubmitted}
+          questionNumber={displayNumber}
+        />
+      );
+    }
   }
 
   if (currentStage.type === 'leaderboard') {
     const leaderboard = state.leaderboard || [];
     return (
-      <>
-        <ScoreDisplay />
-        <div className="flex flex-col items-center justify-center min-h-screen p-4">
-          <h1 className="text-3xl font-bold mb-8 text-center">Турнирная таблица</h1>
-          <div className="w-full max-w-2xl">
-            {leaderboard.length > 0 ? (
-              <div className="space-y-2">
-                {leaderboard.map((p, i) => {
-                  const isCurrentPlayer = currentPlayer && p.id === currentPlayer.id;
-                  return (
-                    <div
-                      key={p.id}
-                      className={`flex justify-between items-center py-3 px-4 rounded-lg border ${
-                        isCurrentPlayer
-                          ? 'bg-yandex-green-50 border-yandex-green-300 font-semibold'
-                          : 'bg-white border-gray-200'
-                      }`}
-                    >
-                      <div className="flex items-center gap-4">
-                        <span className={`w-8 text-center font-mono ${isCurrentPlayer ? 'text-yandex-green-700' : 'text-gray-500'}`}>
-                          {i + 1}
-                        </span>
-                        <span className={isCurrentPlayer ? 'text-yandex-green-700' : 'text-gray-900'}>
-                          {p.name}
-                          {isCurrentPlayer && ' (Вы)'}
-                        </span>
-                      </div>
-                      <span className={`font-bold text-lg ${isCurrentPlayer ? 'text-yandex-green-700' : 'text-gray-900'}`}>
-                        {p.score}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="text-center text-gray-500 py-8">
-                Результаты пока недоступны
-              </div>
-            )}
-          </div>
-        </div>
-      </>
+      <Leaderboard
+        playerName={currentPlayer?.name || 'Игрок'}
+        leaderboard={leaderboard}
+        currentPlayerId={currentPlayer?.id}
+      />
     );
   }
 
