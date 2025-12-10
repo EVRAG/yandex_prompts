@@ -57,7 +57,18 @@ export function DisplayMultipleChoiceQuestion({ stage }: DisplayMultipleChoiceQu
                 <img className={s.image} src={stage.imageUrl} alt="Question image" />
               )
             ) : (
-              <img className={s.image} src="/images/placeholder.png" alt="" />
+              <div className={s.questionTextBox}>
+                <div
+                  className={s.questionTextContent}
+                  style={{
+                    fontSize: stage.displayQuestionTextFontSize
+                      ? `${stage.displayQuestionTextFontSize}px`
+                      : undefined,
+                  }}
+                >
+                  {stage.questionText}
+                </div>
+              </div>
             )}
           </div>
           <div className={s.rightSection}>
