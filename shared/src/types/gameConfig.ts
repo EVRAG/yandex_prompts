@@ -15,6 +15,8 @@ export interface GameStageConfig {
   displayQuestionTextFontSize?: number; // Размер шрифта текста вопроса на display странице (в px)
   displayAnswerFontSize?: number; // Размер шрифта правильного ответа на display странице (в px)
   displayAnswerOptionsFontSize?: number; // Размер шрифта вариантов ответов на display странице (в px)
+  displayQuestionTitle?: string; // Заголовок вопроса на display странице (например, "Какой правильный ответ?")
+  displayAnswerRevealedTitle?: string; // Заголовок когда ответ раскрыт на display странице (например, "Правильный ответ")
 }
 
 export interface GameConfig {

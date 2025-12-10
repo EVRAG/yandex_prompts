@@ -95,10 +95,19 @@ export function MultipleChoiceQuestion({
           </div>
         </div>
         <div className={s.content}>
-          {stage.imageUrl ? (
-            <img className={s.questionImage} src={stage.imageUrl} alt="Question image" />
-          ) : (
-            <img className={s.questionImage} src="/images/placeholder.png" alt="" />
+          {stage.imageUrl && (
+            stage.imageUrl.match(/\.(mp4|webm|mov|avi)$/i) ? (
+              <video 
+                className={s.questionImage} 
+                src={stage.imageUrl} 
+                autoPlay 
+                loop 
+                muted 
+                playsInline
+              />
+            ) : (
+              <img className={s.questionImage} src={stage.imageUrl} alt="Question image" />
+            )
           )}
           <div className={s.answers}>
             {stage.answerOptions.map((answer, index) => {

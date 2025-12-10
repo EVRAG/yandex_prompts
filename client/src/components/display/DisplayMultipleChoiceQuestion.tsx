@@ -44,7 +44,18 @@ export function DisplayMultipleChoiceQuestion({ stage }: DisplayMultipleChoiceQu
               </div>
             )}
             {stage.imageUrl ? (
-              <img className={s.image} src={stage.imageUrl} alt="Question image" />
+              stage.imageUrl.match(/\.(mp4|webm|mov|avi)$/i) ? (
+                <video 
+                  className={s.image} 
+                  src={stage.imageUrl} 
+                  autoPlay 
+                  loop 
+                  muted 
+                  playsInline
+                />
+              ) : (
+                <img className={s.image} src={stage.imageUrl} alt="Question image" />
+              )
             ) : (
               <img className={s.image} src="/images/placeholder.png" alt="" />
             )}
@@ -52,7 +63,10 @@ export function DisplayMultipleChoiceQuestion({ stage }: DisplayMultipleChoiceQu
           <div className={s.rightSection}>
             <img className={s.img} src="/images/bg_desktop.png" alt="bg" />
             <h2 className={s.title}>
-              {showRightAnswer ? 'Правильный ответ' : 'Какой правильный ответ?'}
+              {showRightAnswer 
+                ? (stage.displayAnswerRevealedTitle || 'Правильный ответ')
+                : (stage.displayQuestionTitle || 'Какой правильный ответ?')
+              }
             </h2>
             <div className={s.answers}>
               {stage.answerOptions?.map((answer, index) => {
