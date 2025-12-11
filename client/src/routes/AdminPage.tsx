@@ -52,10 +52,6 @@ export default function AdminPage() {
     socket?.emit('stage:status', 'active');
   };
 
-  const questionStages = config.stages.filter(stage => stage.type === 'question');
-  const registrationStage = config.stages.find(stage => stage.type === 'registration');
-  const leaderboardStage = config.stages.find(stage => stage.type === 'leaderboard');
-
   const renderStageCard = (stage: typeof config.stages[0], buttonText: string) => {
     const isActive = currentStage.id === stage.id && currentStage.status === 'active';
     return (
@@ -136,9 +132,15 @@ export default function AdminPage() {
       </div>
 
       <ul role="list" className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {registrationStage && renderStageCard(registrationStage, 'Запуск регистрации')}
-        {questionStages.map(stage => renderStageCard(stage, 'Запуск вопроса'))}
-        {leaderboardStage && renderStageCard(leaderboardStage, 'Показать результаты')}
+        {config.stages.map(stage => {
+          let buttonText = 'Запуск';
+          if (stage.type === 'question') buttonText = 'Запуск вопроса';
+          else if (stage.type === 'registration') buttonText = 'Запуск регистрации';
+          else if (stage.type === 'leaderboard') buttonText = 'Показать результаты';
+          else if (stage.type === 'info') buttonText = 'Показать';
+
+          return renderStageCard(stage, buttonText);
+        })}
       </ul>
     </div>
   );
