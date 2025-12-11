@@ -3,6 +3,7 @@ import { useRealtime } from '../hooks/useRealtime';
 import { DisplayRegistration } from '../components/display/DisplayRegistration';
 import { DisplayMultipleChoiceQuestion } from '../components/display/DisplayMultipleChoiceQuestion';
 import { DisplayLeaderboard } from '../components/display/DisplayLeaderboard';
+import { DisplayTextQuestion } from '../components/display/DisplayTextQuestion';
 
 export default function DisplayPage() {
   const { state } = useRealtime('display');
@@ -19,42 +20,7 @@ export default function DisplayPage() {
           {currentStage.answerOptions && currentStage.answerOptions.length > 0 ? (
             <DisplayMultipleChoiceQuestion stage={currentStage} />
           ) : (
-            <div className="flex flex-col items-center justify-center min-h-screen p-8 text-center">
-              <h1 
-                className={`font-bold mb-12 leading-tight max-w-5xl ${
-                  !currentStage.displayQuestionTextFontSize ? 'text-5xl md:text-7xl' : ''
-                }`}
-                style={{
-                  fontSize: currentStage.displayQuestionTextFontSize 
-                    ? `${currentStage.displayQuestionTextFontSize}px` 
-                    : undefined
-                }}
-              >
-                {currentStage.questionText}
-              </h1>
-              
-              {currentStage.status === 'active' && currentStage.startTime && (
-                 <Timer startTime={currentStage.startTime} duration={currentStage.timeLimitSeconds || 60} />
-              )}
-
-              {currentStage.status === 'revealed' && (
-                <div className="mt-12 bg-yandex-green text-black p-8 rounded-2xl animate-fade-in">
-                  <div className="text-xl mb-2 font-bold opacity-75">Правильный ответ:</div>
-                  <div 
-                    className={`font-bold ${
-                      !currentStage.displayAnswerFontSize ? 'text-4xl md:text-5xl' : ''
-                    }`}
-                    style={{
-                      fontSize: currentStage.displayAnswerFontSize 
-                        ? `${currentStage.displayAnswerFontSize}px` 
-                        : undefined
-                    }}
-                  >
-                    {currentStage.referenceAnswer}
-                  </div>
-                </div>
-              )}
-            </div>
+            <DisplayTextQuestion stage={currentStage} />
           )}
         </>
       )}

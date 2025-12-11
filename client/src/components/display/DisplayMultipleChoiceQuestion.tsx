@@ -29,12 +29,14 @@ export function DisplayMultipleChoiceQuestion({ stage }: DisplayMultipleChoiceQu
     ? getRemainingSeconds()
     : stage.timeLimitSeconds || 0;
 
+  const hasMedia = Boolean(stage.imageUrl);
+
   return (
     <div className={s.root}>
       <div className={s.wrapper}>
         <div className={s.content}>
-          <div className={s.leftSection}>
-            {stage.status === 'active' && stage.startTime && stage.timeLimitSeconds && (
+          <div className={`${s.leftSection} ${!hasMedia ? s.leftSection_noMedia : ''}`}>
+            {(stage.status === 'active' && stage.startTime && stage.timeLimitSeconds) && (
               <div className={s.timerWrapper}>
                 <Timer 
                   seconds={stage.timeLimitSeconds} 
@@ -43,18 +45,23 @@ export function DisplayMultipleChoiceQuestion({ stage }: DisplayMultipleChoiceQu
                 />
               </div>
             )}
-            {stage.imageUrl ? (
-              stage.imageUrl.match(/\.(mp4|webm|mov|avi)$/i) ? (
+            {stage.questionNumberLabel && (
+              <div className={s.questionNumber}>
+                {stage.questionNumberLabel}
+              </div>
+            )}
+            {hasMedia ? (
+              stage.imageUrl!.match(/\.(mp4|webm|mov|avi)$/i) ? (
                 <video 
                   className={s.image} 
-                  src={stage.imageUrl} 
+                  src={stage.imageUrl!} 
                   autoPlay 
                   loop 
                   muted 
                   playsInline
                 />
               ) : (
-                <img className={s.image} src={stage.imageUrl} alt="Question image" />
+                <img className={s.image} src={stage.imageUrl!} alt="Question image" />
               )
             ) : (
               <div className={s.questionTextBox}>
