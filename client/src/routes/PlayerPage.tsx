@@ -7,6 +7,7 @@ import { WaitingScreen } from '../components/player/WaitingScreen';
 import { Leaderboard } from '../components/player/Leaderboard';
 import { SERVER_URL } from '../lib/constants';
 import type { Submission } from '@prompt-night/shared';
+import { preloadMedia } from '../lib/preloadMedia';
 
 export default function PlayerPage() {
   const [playerId, setPlayerId] = useState(() => localStorage.getItem('playerId'));
@@ -87,6 +88,14 @@ export default function PlayerPage() {
       setIsRegistering(false);
     }
   };
+
+  // Preload media for all stages (images/videos) to speed up display
+  useEffect(() => {
+    if (config?.stages) {
+      const urls = config.stages.map((s) => s.imageUrl);
+      preloadMedia(urls);
+    }
+  }, [config]);
 
   const handleSubmit = (answer: string) => {
     socket?.emit('submit', { answer });

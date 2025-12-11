@@ -4,9 +4,18 @@ import { DisplayRegistration } from '../components/display/DisplayRegistration';
 import { DisplayMultipleChoiceQuestion } from '../components/display/DisplayMultipleChoiceQuestion';
 import { DisplayLeaderboard } from '../components/display/DisplayLeaderboard';
 import { DisplayTextQuestion } from '../components/display/DisplayTextQuestion';
+import { preloadMedia } from '../lib/preloadMedia';
 
 export default function DisplayPage() {
-  const { state } = useRealtime('display');
+  const { state, config } = useRealtime('display');
+
+  // Preload all media used in game (images/videos)
+  useEffect(() => {
+    if (config?.stages) {
+      const urls = config.stages.map((s) => s.imageUrl);
+      preloadMedia(urls);
+    }
+  }, [config]);
 
   if (!state) return <div className="bg-black min-h-screen text-white flex items-center justify-center text-4xl">Connecting...</div>;
 
