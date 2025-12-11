@@ -7,6 +7,10 @@ COPY client/package*.json client/
 COPY server/package*.json server/
 COPY shared/package*.json shared/
 
+# Remove package-lock.json to avoid platform specific issues
+RUN rm -f package-lock.json client/package-lock.json server/package-lock.json shared/package-lock.json
+
+# Install dependencies with optional deps
 RUN npm install --include=optional
 
 COPY . .
