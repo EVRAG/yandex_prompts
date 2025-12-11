@@ -7,7 +7,7 @@ COPY client/package*.json client/
 COPY server/package*.json server/
 COPY shared/package*.json shared/
 
-RUN npm install
+RUN npm install --include=optional
 
 COPY . .
 
