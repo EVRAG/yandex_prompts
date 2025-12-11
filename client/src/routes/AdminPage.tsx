@@ -1,19 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRealtime } from '../hooks/useRealtime';
-import { ADMIN_SECRET } from '../lib/constants';
 
 export default function AdminPage() {
-  const [secret, setSecret] = useState(ADMIN_SECRET || localStorage.getItem('adminSecret') || '');
+  const [secret, setSecret] = useState('');
   const { socket, state, isConnected, config } = useRealtime('admin', { secret });
-
-  useEffect(() => {
-    if (secret) localStorage.setItem('adminSecret', secret);
-  }, [secret]);
-
-  useEffect(() => {
-    console.log('[AdminPage] Secret:', secret ? 'SET' : 'NOT SET', 'Length:', secret.length);
-    console.log('[AdminPage] ADMIN_SECRET from env:', ADMIN_SECRET ? 'SET' : 'NOT SET');
-  }, [secret]);
 
   if (!secret) {
     return (
