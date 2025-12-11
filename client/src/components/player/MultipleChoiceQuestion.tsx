@@ -71,9 +71,6 @@ export function MultipleChoiceQuestion({
   const timeoutNoAnswer = isFinished && !hasSubmitted && !submission;
   const resultSubmission = submission ?? (timeoutNoAnswer ? { score: 0, feedback: 'время истекло' } : undefined);
 
-  // Находим правильный ответ для подсветки
-  const correctAnswerIndex = stage.answerOptions.findIndex(opt => opt.isCorrect);
-  
   // Показываем правильный ответ если время истекло или ответ отправлен
   // После отправки экран остается тем же, просто подсвечивается правильный ответ
   const shouldShowCorrect = hasSubmitted || isFinished;

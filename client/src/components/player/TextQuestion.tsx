@@ -105,7 +105,7 @@ export function TextQuestion({
           <div className={s.right}>
             {timeLeft !== null && stage.startTime && stage.timeLimitSeconds && (
               <Timer 
-                seconds={stage.timeLimitSeconds} 
+                seconds={stage.timeLimitSeconds!} 
                 startTime={stage.startTime}
               />
             )}

@@ -19,17 +19,6 @@ export function DisplayMultipleChoiceQuestion({ stage }: DisplayMultipleChoiceQu
     return String.fromCharCode(1040 + index); // 1040 - это код буквы А в кириллице
   };
 
-  // Вычисляем оставшееся время
-  const getRemainingSeconds = (): number => {
-    if (!stage.startTime || !stage.timeLimitSeconds) return 0;
-    const elapsed = (Date.now() - stage.startTime) / 1000;
-    return Math.max(0, Math.ceil(stage.timeLimitSeconds - elapsed));
-  };
-
-  const remainingSeconds = stage.status === 'active' && stage.startTime && stage.timeLimitSeconds
-    ? getRemainingSeconds()
-    : stage.timeLimitSeconds || 0;
-
   const hasMedia = Boolean(stage.imageUrl);
 
   return (
@@ -40,8 +29,8 @@ export function DisplayMultipleChoiceQuestion({ stage }: DisplayMultipleChoiceQu
             {(stage.status === 'active' && stage.startTime && stage.timeLimitSeconds) && (
               <div className={s.timerWrapper}>
                 <Timer 
-                  seconds={stage.timeLimitSeconds} 
-                  startTime={stage.startTime}
+                  seconds={stage.timeLimitSeconds!} 
+                  startTime={stage.startTime!}
                   desktop={true}
                 />
               </div>

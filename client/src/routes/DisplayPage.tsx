@@ -46,30 +46,3 @@ export default function DisplayPage() {
     </div>
   );
 }
-
-function Timer({ startTime, duration }: { startTime: number, duration: number }) {
-    // Simple self-updating timer component
-    // In real app use requestAnimationFrame or state
-    const elapsed = Math.max(0, (Date.now() - startTime) / 1000);
-    const remaining = Math.max(0, Math.ceil(duration - elapsed));
-    
-    // We render static here, but parent causes re-render on state update?
-    // Actually we need a local interval to animate countdown smoothly.
-    // For brevity I'll assume 1s re-renders or add local state.
-    // Let's add local state.
-    const [val, setVal] = useState(remaining);
-    
-    useEffect(() => {
-        const i = setInterval(() => {
-            const e = Math.max(0, (Date.now() - startTime) / 1000);
-            setVal(Math.max(0, Math.ceil(duration - e)));
-        }, 100);
-        return () => clearInterval(i);
-    }, [startTime, duration]);
-
-    return (
-        <div className="text-9xl font-mono font-bold text-yandex-green">
-            {val}
-        </div>
-    );
-}
