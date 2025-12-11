@@ -79,6 +79,14 @@ app.get('/config', (req, res) => {
   res.json(gameConfig);
 });
 
+// Log /state polling for visibility
+app.use((req, _res, next) => {
+  if (req.path === '/state') {
+    console.log(`[http] ${req.method} ${req.originalUrl} from ${req.ip}`);
+  }
+  next();
+});
+
 app.get('/state', (req, res) => {
   const state = getState();
   const currentStage = getCurrentStage();
