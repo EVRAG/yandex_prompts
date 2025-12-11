@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useRealtime } from '../hooks/useRealtime';
 import { DisplayRegistration } from '../components/display/DisplayRegistration';
 import { DisplayMultipleChoiceQuestion } from '../components/display/DisplayMultipleChoiceQuestion';

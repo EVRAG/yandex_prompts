@@ -103,10 +103,10 @@ export function TextQuestion({
             )}
           </div>
           <div className={s.right}>
-            {timeLeft !== null && stage.startTime && stage.timeLimitSeconds && (
+            {timeLeft !== null && stage.startTime && stage.timeLimitSeconds !== undefined && (
               <Timer 
-                seconds={stage.timeLimitSeconds!} 
-                startTime={stage.startTime}
+                seconds={stage.timeLimitSeconds ?? 0} 
+                startTime={stage.startTime ?? Date.now()}
               />
             )}
           </div>
