@@ -65,7 +65,6 @@ export function useRealtime(namespace: string, auth?: any) {
   // - Когда WS отвален/рестартится: чаще (5s) для страховки.
   useEffect(() => {
     let intervalId: number | undefined;
-    let stopped = false;
 
     const poll = async () => {
       try {
@@ -86,7 +85,6 @@ export function useRealtime(namespace: string, auth?: any) {
     intervalId = window.setInterval(poll, isConnected ? 20000 : 5000);
 
     return () => {
-      stopped = true;
       if (intervalId) window.clearInterval(intervalId);
     };
   }, [isConnected, namespace]);
