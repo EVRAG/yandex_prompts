@@ -1,322 +1,322 @@
 {
   "stages": [
-    {
-      "id": "registration",
-      "title": "Регистрация",
-      "type": "registration"
-    },
-    {
-      "id": "waiting",
-      "title": "Ожидание",
-      "type": "info"
-    },
-    {
-      "id": "question_1",
-      "title": "Вопрос 1/15",
-      "type": "question",
-      "questionText": "Разогреть духовку до максимальной температуры (желательно — до 280°C или выше), предварительно поместив в неё противень или пекарский камень; выложить сформированную пиццу на горячий противень, при необходимости создать пар, сбрызнув стенки духовки водой; выпекать 5–10 минут (в зависимости от толщины теста и количества начинки) до золотистой корочки и полного расплавления сыра.",
-      "referenceAnswer": "Напиши в одно предложение, как правильно выпекать пиццу?",
-      "timeLimitSeconds": 30,
-      "displayQuestionTextFontSize": 32,
-      "displayAnswerFontSize": 36,
-      "displayAnswerOptionsFontSize": 36,
-      "displayQuestionTitle": "Выберите правильный вариант промта",
-      "displayAnswerRevealedTitle": "Правильный ответ",
-      "showQuestionTextOnMobile": true,
-      "questionNumberLabel": "Вопрос 1/15",
-      "answerOptions": [
-        {
-          "text": "Что делать если хлеб становится мягким?",
-          "isCorrect": false
-        },
-        {
-          "text": "Напиши в одно предложение, как правильно выпекать пиццу?",
-          "isCorrect": true
-        },
-        {
-          "text": "Как приготовить суп из овощей?",
-          "isCorrect": false
-        },
-        {
-          "text": "Что делает тесто сладким, объясни в формате песни?",
-          "isCorrect": false
-        }
-      ]
-    },
-    {
-      "id": "question_2",
-      "title": "Вопрос 2/15",
-      "type": "question",
-      "questionText": "Представь, что у тебя есть суперсекретная шкатулка с сокровищами. Чтобы её открыть, нужно не просто знать пароль (как обычный ключ), а пройти два испытания. Это и есть двухфакторная аутентификация (2FA)!\n\nКак это работает — на примере шкатулки\n\nПервое испытание (то, что ты знаешь)\n\nТы называешь секретное слово‑пароль. Это как первый ключ.\n\nВторое испытание (то, что у тебя есть)\n\nСистема отправляет тебе особый код на телефон или просит отсканировать отпечаток пальца. Это второй ключ — без него шкатулка не откроется!\n\nПочему так надёжнее?\n\nЕсли злой волшебник украдёт твой пароль, он всё равно не сможет открыть шкатулку — ведь у него нет твоего телефона или отпечатка пальца!",
-      "referenceAnswer": "Объясни как ребёнку, что такое двухфакторная аутентификации?",
-      "timeLimitSeconds": 30,
-      "displayQuestionTextFontSize": 24,
-      "displayAnswerFontSize": 32,
-      "displayAnswerOptionsFontSize": 30,
-      "displayQuestionTitle": "Выберите правильный вариант промта",
-      "displayAnswerRevealedTitle": "Правильный ответ",
-      "showQuestionTextOnMobile": true,
-      "questionNumberLabel": "Вопрос 2/15",
-      "answerOptions": [
-        {
-          "text": "Объясни как ребёнку, что такое двухфакторная аутентификации?",
-          "isCorrect": true
-        },
-        {
-          "text": "Опиши основные отличия между облачным и локальным хранением данных..",
-          "isCorrect": false
-        },
-        {
-          "text": "Расшифруй значение аббревиатуры 2FA",
-          "isCorrect": false
-        },
-        {
-          "text": "Напиши 5 причин почему двухфакторная аутентификация безопаснее чем однофакторная.",
-          "isCorrect": false
-        }
-      ]
-    },
-    {
-      "id": "question_3",
-      "title": "Вопрос 3/15",
-      "type": "question",
-      "questionText": "«Петя, поздравляю тебя с днём рождения! Желаю удачи, здоровья и отличного настроения!»",
-      "referenceAnswer": "Напиши короткое поздравление с днём рождения для Пети",
-      "timeLimitSeconds": 30,
-      "displayQuestionTextFontSize": 48,
-      "displayAnswerFontSize": 36,
-      "showQuestionTextOnMobile": true,
-      "questionNumberLabel": "Вопрос 3/15"
-    },
-    {
-      "id": "question_4",
-      "title": "Вопрос 4/15",
-      "type": "question",
-      "questionText": "Заряжаетесь энергией. Утренний бег активирует кровообращение, насыщает организм кислородом и улучшает обмен веществ, что помогает начать день бодро и продуктивно.\n\nУлучшаете настроение. Во время бега вырабатываются эндорфины, которые снимают стресс и повышают позитивный настрой.\n\nПоддерживаете форму. Бег — эффективный способ сжигать калории, укреплять мышцы и улучшать осанку без дополнительных затрат.\n\nУкрепляете здоровье. Тренирует сердце, сосуды, лёгкие, повышает выносливость и иммунитет.\n\nРазвиваете дисциплину. Регулярные пробежки формируют силу воли, повышают самооценку и помогают лучше планировать время.",
-      "referenceAnswer": "Напиши простыми словами 5 причин начать бегать по утрам",
-      "timeLimitSeconds": 30,
-      "displayQuestionTextFontSize": 20,
-      "displayAnswerFontSize": 32,
-      "showQuestionTextOnMobile": true,
-      "questionNumberLabel": "Вопрос 4/15"
-    },
-    {
-      "id": "question_5",
-      "title": "Вопрос 5/15",
-      "type": "question",
-      "questionText": "Один из самых эффективных практических советов для начинающего — метод «1‑3‑5» для планирования дня.\n\nКак это работает:\n\nКаждый вечер (или утром) составляйте список дел на следующий день, строго соблюдая структуру:\n\n1 крупное, приоритетное дело — самая важная задача, которая продвигает вас к ключевой цели;\n\n3 средних дела — задачи, требующие 30–60 минут, важные, но не критичные;\n\n5 мелких дел — быстрые задачи (до 15 минут), рутина или «долги» (ответы на письма, уборка, звонки).",
-      "referenceAnswer": "Ты – коуч по продуктивности. Дай один практический совет начинающему.",
-      "timeLimitSeconds": 30,
-      "displayQuestionTextFontSize": 24,
-      "displayAnswerFontSize": 32,
-      "showQuestionTextOnMobile": true,
-      "questionNumberLabel": "Вопрос 5/15"
-    },
-    {
-      "id": "question_6",
-      "title": "Вопрос 6/15",
-      "type": "question",
-      "questionText": "Леонардо да Винчи (внимательно изучает плод): Любопытная форма… Словно природа соединила яблоко, землянику и огурец. Вы знаете, Альберт, в моих странствиях я не встречал подобного. Что это за диво?\n\nАльберт Эйнштейн (берёт дольку, задумчиво нюхает): Фейхоа, Леонардо. Растение родом из Южной Америки. Представьте: оно попало в Европу лишь в конце XIX века — слишком поздно для ваших времён.\n\nЛеонардо (разрезает плод ножом, рассматривает желеобразную сердцевину): Структура поразительная! Прозрачная мякоть с семенами — как миниатюрный космос. А запах… напоминает цветочный мёд. Вы изучали его свойства?\n\nЭйнштейн): Я — физик, а не ботаник, но знаю, что фейхоа богато йодом и витамином C. Вы, наверное, уже придумали, как использовать его в механизмах?\n\nЛеонардо (смеётся): Пока нет, но представьте: сок этого плода как смазка для тонких шестерён? Или экстракт для чернил, меняющих цвет при нагреве… А может, его форма подскажет конструкцию нового летательного аппарата!\n\nЭйнштейн: Вы всегда видите скрытые возможности. Знаете, в физике есть нечто схожее: мы ищем универсальные законы, а природа прячет их в самых неожиданных формах — будь то атом или экзотический фрукт.",
-      "referenceAnswer": "Создай диалог между историческими личностями Леонардо да Винчи и Альбертом Эйнштейном на тему фейхоа.",
-      "timeLimitSeconds": 30,
-      "displayQuestionTextFontSize": 18,
-      "displayAnswerFontSize": 32,
-      "showQuestionTextOnMobile": true,
-      "questionNumberLabel": "Вопрос 6/15"
-    },
-    {
-      "id": "question_7",
-      "title": "Вопрос 7/15",
-      "type": "question",
-      "questionText": "Количество участников: от 6 до 20 человек.\n\nВремя: 15–25 минут.\n\nРеквизит: ничего не требуется (опционально — колокольчик или ёлочная игрушка для передачи «права хода»).\n\nПравила\n\nВсе участники садятся в круг.\n\nВедущий задаёт начало истории (1–2 предложения).\n\nИгра идёт по кругу: каждый участник добавляет одно предложение, развивая сюжет.\n\nНельзя долго раздумывать — на ответ даётся 10–15 секунд.\n\nИстория должна оставаться связной, но приветствуется юмор и неожиданные повороты.\n\nЗапрещено использовать грубые или оскорбительные формулировки.",
-      "referenceAnswer": "Придумай новогодний конкурс для компании людей разных возрастов. Он должен быть весёлым, подвижным, без сложного реквизита, с участием всех типов людей, с творчеством, юмором и новогодней тематикой. Опиши количество участников, время и ход игры.",
-      "timeLimitSeconds": 30,
-      "displayQuestionTextFontSize": 18,
-      "displayAnswerFontSize": 32,
-      "showQuestionTextOnMobile": true,
-      "questionNumberLabel": "Вопрос 7/15"
-    },
-    {
-      "id": "leaderboard1",
-      "title": "Результаты",
-      "type": "leaderboard"
-    },
-    {
-      "id": "question_9",
-      "title": "Вопрос 8/15",
-      "type": "question",
-      "questionText": "Выберите правильный вариант промта",
-      "imageUrl": "https://storage.yandexcloud.net/voting-ett/prompts/task_01.jpg",
-      "referenceAnswer": "Кот в сапогах возле дерева, гиперреализм",
-      "timeLimitSeconds": 30,
-      "displayQuestionTextFontSize": 30,
-      "displayAnswerFontSize": 36,
-      "displayAnswerOptionsFontSize": 36,
-      "displayQuestionTitle": "Выберите правильный вариант промта",
-      "displayAnswerRevealedTitle": "Правильный ответ",
-      "showQuestionTextOnMobile": true,
-      "questionNumberLabel": "Вопрос 8/15",
-      "answerOptions": [
-        {
-          "text": "Кот ходит вокруг дуба, книжная иллюстрация",
-          "isCorrect": false
-        },
-        {
-          "text": "Кот в сапогах возле дерева, гиперреализм",
-          "isCorrect": true
-        },
-        {
-          "text": "Красивый зеленый дуб, лето, фотография",
-          "isCorrect": false
-        },
-        {
-          "text": "Кот предъявляет уши и хвост, как документы",
-          "isCorrect": false
-        }
-      ]
-    },
-    {
-      "id": "question_10",
-      "title": "Вопрос 9/15",
-      "type": "question",
-      "questionText": "Выберите правильный вариант промта",
-      "imageUrl": "https://storage.yandexcloud.net/voting-ett/prompts/task_02.jpg",
-      "referenceAnswer": "Ночь, заснеженная дорожка парка, фонари, минимализм, пиксель арт",
-      "timeLimitSeconds": 30,
-      "displayQuestionTextFontSize": 30,
-      "displayAnswerFontSize": 30,
-      "displayAnswerOptionsFontSize": 30,
-      "displayQuestionTitle": "Выберите правильный вариант промта",
-      "displayAnswerRevealedTitle": "Правильный ответ",
-      "showQuestionTextOnMobile": true,
-      "questionNumberLabel": "Вопрос 9/15",
-      "answerOptions": [
-        {
-          "text": "Городской зимний пейзаж, акварель",
-          "isCorrect": false
-        },
-        {
-          "text": "Ночь, заснеженная дорожка парка, фонари, минимализм, пиксель арт",
-          "isCorrect": true
-        },
-        {
-          "text": "Новогодняя ночь, снегопад за окном, уют",
-          "isCorrect": false
-        },
-        {
-          "text": "Зимняя дорога уходит за горизонт, абстракция",
-          "isCorrect": false
-        }
-      ]
-    },
-    {
-      "id": "question_11",
-      "title": "Вопрос 10/15",
-      "type": "question",
-      "questionText": "Напишите промпт, по которому Алиса AI нарисовала такую картинку (сложность 1/3)",
-      "imageUrl": "https://storage.yandexcloud.net/voting-ett/prompts/task_03.jpeg",
-      "referenceAnswer": "Городской пейзаж в стиле Ван Гога, вихревые облака, яркие цвета, насыщенные жёлтые и синие тона, улицы города.",
-      "timeLimitSeconds": 30,
-      "displayQuestionTextFontSize": 32,
-      "displayAnswerFontSize": 32,
-      "showQuestionTextOnMobile": true,
-      "questionNumberLabel": "Вопрос 10/15"
-    },
-    {
-      "id": "question_12",
-      "title": "Вопрос 11/15",
-      "type": "question",
-      "questionText": "Напишите промпт, по которому Алиса AI нарисовала такую картинку (сложность 2/3)",
-      "imageUrl": "https://storage.yandexcloud.net/voting-ett/prompts/task_04.jpeg",
-      "referenceAnswer": "Тёплый ретро‑кадр: крупный план советской квартиры. все украшено блестящей мишурой и разноцветными новогодними шарами. По старому телевизору идет новогодняя программа. На ковре уютно устроился пушистый кот. Мягкое освещение, ощущение домашнего тепла и праздника, высокая детализация",
-      "timeLimitSeconds": 30,
-      "displayQuestionTextFontSize": 32,
-      "displayAnswerFontSize": 32,
-      "showQuestionTextOnMobile": true,
-      "questionNumberLabel": "Вопрос 11/15"
-    },
-    {
-      "id": "question_13",
-      "title": "Вопрос 12/15",
-      "type": "question",
-      "questionText": "Напишите промпт, по которому Алиса AI нарисовала такую картинку (сложность 2/3)",
-      "imageUrl": "https://storage.yandexcloud.net/voting-ett/prompts/task_05.jpeg",
-      "referenceAnswer": "Офис, в котором работают снеговики‑клерки.\n\nСовременное светлое open space‑помещение с однотипными рабочими столами и перегородками. Большие окна, за ними — зимний город, идёт снег.\n\nСнеговики сидят за компьютерами, рядом кружки с горячим какао и кофе, бумажные стаканчики, стикеры, стопки документов. На них шарфы, шапки, морковки‑носы, на «лицах» — легкая усталость.\n\nАтмосфера как в сериалах «Офис» или «Разделение»: сероватая палитра, холодный офисный свет, немного абсурд и ирония над корпоративной рутиной. Стиль иллюстрации — полуреалистичный или киношный, с акцентом на выражения и настроение, минимум ярких новогодних красок.",
-      "timeLimitSeconds": 30,
-      "displayQuestionTextFontSize": 32,
-      "displayAnswerFontSize": 24,
-      "showQuestionTextOnMobile": true,
-      "questionNumberLabel": "Вопрос 12/15"
-    },
-    {
-      "id": "leaderboard2",
-      "title": "Результаты",
-      "type": "leaderboard"
-    },
-    {
-      "id": "question_14",
-      "title": "Вопрос 13/15",
-      "type": "question",
-      "questionText": "Выберите правильный вариант промта",
-      "imageUrl": "https://storage.yandexcloud.net/voting-ett/prompts/video_03_h264.mp4",
-      "referenceAnswer": "Собака-спасатель Малибу",
-      "timeLimitSeconds": 30,
-      "displayQuestionTextFontSize": 30,
-      "displayAnswerFontSize": 36,
-      "displayAnswerOptionsFontSize": 30,
-      "displayQuestionTitle": "Выберите правильный вариант промта",
-      "displayAnswerRevealedTitle": "Правильный ответ",
-      "showQuestionTextOnMobile": true,
-      "questionNumberLabel": "Вопрос 13/15",
-      "answerOptions": [
-        {
-          "text": "Собака ловит круг для плавания как пончик и надевает его на себя",
-          "isCorrect": false
-        },
-        {
-          "text": "Хороший мальчик на море",
-          "isCorrect": false
-        },
-        {
-          "text": "Собачье счастье",
-          "isCorrect": false
-        },
-        {
-          "text": "Собака-спасатель Малибу",
-          "isCorrect": true
-        }
-      ]
-    },
-    {
-      "id": "question_15",
-      "title": "Вопрос 14/15",
-      "type": "question",
-      "questionText": "Напишите промпт, по которому Алиса AI оживила фото (сложность 1/2)",
-      "imageUrl": "https://disk.yandex.ru/i/ribLTAby2AHGxg",
-      "referenceAnswer": "Фон меняется на берег озера. Мужчина превращается из офисного работника в рыбака с удочкой. Мужчина достаёт удочку и закидывает её в воду. Мягкий белый свет, реалистичные пропорции, черты лица сохранены.",
-      "timeLimitSeconds": 30,
-      "displayQuestionTextFontSize": 32,
-      "displayAnswerFontSize": 32,
-      "showQuestionTextOnMobile": true,
-      "questionNumberLabel": "Вопрос 14/15"
-    },
-    {
-      "id": "question_16",
-      "title": "Вопрос 15/15",
-      "type": "question",
-      "questionText": "Напишите промпт, по которому Алиса AI оживила фото (сложность 2/2)",
-      "imageUrl": "https://storage.yandexcloud.net/voting-ett/prompts/video_02_h264.mp4",
-      "referenceAnswer": "Одной рукой парень достаёт телефон и прикладывает к уху, второй рукой берёт книгу. Сбоку появляются руки, первая держит ноутбук, третья рука держит половник, четвёртая рука держит камеру, пятая рука держит кружку.",
-      "timeLimitSeconds": 30,
-      "displayQuestionTextFontSize": 32,
-      "displayAnswerFontSize": 32,
-      "showQuestionTextOnMobile": true,
-      "questionNumberLabel": "Вопрос 15/15"
-    },
-    {
-      "id": "leaderboard3",
-      "title": "Результаты",
-      "type": "leaderboard"
-    }
+      {
+          "id": "registration",
+          "title": "Регистрация",
+          "type": "registration"
+      },
+      {
+          "id": "waiting",
+          "title": "Ожидание",
+          "type": "info"
+      },
+      {
+          "id": "question_1",
+          "title": "Вопрос 1/7",
+          "type": "question",
+          "questionText": "Разогреть духовку до максимальной температуры (желательно — до 280°C или выше), предварительно поместив в неё противень или пекарский камень; выложить сформированную пиццу на горячий противень, при необходимости создать пар, сбрызнув стенки духовки водой; выпекать 5–10 минут (в зависимости от толщины теста и количества начинки) до золотистой корочки и полного расплавления сыра.",
+          "referenceAnswer": "Напиши в одно предложение, как правильно выпекать пиццу?",
+          "timeLimitSeconds": 30,
+          "displayQuestionTextFontSize": 32,
+          "displayAnswerFontSize": 36,
+          "displayAnswerOptionsFontSize": 36,
+          "displayQuestionTitle": "Выберите правильный вариант промта",
+          "displayAnswerRevealedTitle": "Правильный ответ",
+          "showQuestionTextOnMobile": true,
+          "questionNumberLabel": "Вопрос 1/7",
+          "answerOptions": [
+              {
+                  "text": "Что делать если хлеб становится мягким?",
+                  "isCorrect": false
+              },
+              {
+                  "text": "Напиши в одно предложение, как правильно выпекать пиццу?",
+                  "isCorrect": true
+              },
+              {
+                  "text": "Как приготовить суп из овощей?",
+                  "isCorrect": false
+              },
+              {
+                  "text": "Что делает тесто сладким, объясни в формате песни?",
+                  "isCorrect": false
+              }
+          ]
+      },
+      {
+          "id": "question_2",
+          "title": "Вопрос 2/7",
+          "type": "question",
+          "questionText": "Представь, что у тебя есть суперсекретная шкатулка с сокровищами. Чтобы её открыть, нужно не просто знать пароль (как обычный ключ), а пройти два испытания. Это и есть двухфакторная аутентификация (2FA)!\n\nКак это работает — на примере шкатулки\n\nПервое испытание (то, что ты знаешь)\n\nТы называешь секретное слово‑пароль. Это как первый ключ.\n\nВторое испытание (то, что у тебя есть)\n\nСистема отправляет тебе особый код на телефон или просит отсканировать отпечаток пальца. Это второй ключ — без него шкатулка не откроется!\n\nПочему так надёжнее?\n\nЕсли злой волшебник украдёт твой пароль, он всё равно не сможет открыть шкатулку — ведь у него нет твоего телефона или отпечатка пальца!",
+          "referenceAnswer": "Объясни как ребёнку, что такое двухфакторная аутентификации?",
+          "timeLimitSeconds": 30,
+          "displayQuestionTextFontSize": 24,
+          "displayAnswerFontSize": 32,
+          "displayAnswerOptionsFontSize": 30,
+          "displayQuestionTitle": "Выберите правильный вариант промта",
+          "displayAnswerRevealedTitle": "Правильный ответ",
+          "showQuestionTextOnMobile": true,
+          "questionNumberLabel": "Вопрос 2/7",
+          "answerOptions": [
+              {
+                  "text": "Объясни как ребёнку, что такое двухфакторная аутентификации?",
+                  "isCorrect": true
+              },
+              {
+                  "text": "Опиши основные отличия между облачным и локальным хранением данных..",
+                  "isCorrect": false
+              },
+              {
+                  "text": "Расшифруй значение аббревиатуры 2FA",
+                  "isCorrect": false
+              },
+              {
+                  "text": "Напиши 5 причин почему двухфакторная аутентификация безопаснее чем однофакторная.",
+                  "isCorrect": false
+              }
+          ]
+      },
+      {
+          "id": "question_3",
+          "title": "Вопрос 3/7",
+          "type": "question",
+          "questionText": "«Петя, поздравляю тебя с днём рождения! Желаю удачи, здоровья и отличного настроения!»",
+          "referenceAnswer": "Напиши короткое поздравление с днём рождения для Пети",
+          "timeLimitSeconds": 30,
+          "displayQuestionTextFontSize": 48,
+          "displayAnswerFontSize": 36,
+          "showQuestionTextOnMobile": true,
+          "questionNumberLabel": "Вопрос 3/7"
+      },
+      {
+          "id": "question_4",
+          "title": "Вопрос 4/7",
+          "type": "question",
+          "questionText": "Заряжаетесь энергией. Утренний бег активирует кровообращение, насыщает организм кислородом и улучшает обмен веществ, что помогает начать день бодро и продуктивно.\n\nУлучшаете настроение. Во время бега вырабатываются эндорфины, которые снимают стресс и повышают позитивный настрой.\n\nПоддерживаете форму. Бег — эффективный способ сжигать калории, укреплять мышцы и улучшать осанку без дополнительных затрат.\n\nУкрепляете здоровье. Тренирует сердце, сосуды, лёгкие, повышает выносливость и иммунитет.\n\nРазвиваете дисциплину. Регулярные пробежки формируют силу воли, повышают самооценку и помогают лучше планировать время.",
+          "referenceAnswer": "Напиши простыми словами 5 причин начать бегать по утрам",
+          "timeLimitSeconds": 30,
+          "displayQuestionTextFontSize": 20,
+          "displayAnswerFontSize": 32,
+          "showQuestionTextOnMobile": true,
+          "questionNumberLabel": "Вопрос 4/7"
+      },
+      {
+          "id": "question_5",
+          "title": "Вопрос 5/7",
+          "type": "question",
+          "questionText": "Один из самых эффективных практических советов для начинающего — метод «1‑3‑5» для планирования дня.\n\nКак это работает:\n\nКаждый вечер (или утром) составляйте список дел на следующий день, строго соблюдая структуру:\n\n1 крупное, приоритетное дело — самая важная задача, которая продвигает вас к ключевой цели;\n\n3 средних дела — задачи, требующие 30–60 минут, важные, но не критичные;\n\n5 мелких дел — быстрые задачи (до 15 минут), рутина или «долги» (ответы на письма, уборка, звонки).",
+          "referenceAnswer": "Ты – коуч по продуктивности. Дай один практический совет начинающему.",
+          "timeLimitSeconds": 30,
+          "displayQuestionTextFontSize": 24,
+          "displayAnswerFontSize": 32,
+          "showQuestionTextOnMobile": true,
+          "questionNumberLabel": "Вопрос 5/7"
+      },
+      {
+          "id": "question_6",
+          "title": "Вопрос 6/7",
+          "type": "question",
+          "questionText": "Леонардо да Винчи (внимательно изучает плод): Любопытная форма… Словно природа соединила яблоко, землянику и огурец. Вы знаете, Альберт, в моих странствиях я не встречал подобного. Что это за диво?\n\nАльберт Эйнштейн (берёт дольку, задумчиво нюхает): Фейхоа, Леонардо. Растение родом из Южной Америки. Представьте: оно попало в Европу лишь в конце XIX века — слишком поздно для ваших времён.\n\nЛеонардо (разрезает плод ножом, рассматривает желеобразную сердцевину): Структура поразительная! Прозрачная мякоть с семенами — как миниатюрный космос. А запах… напоминает цветочный мёд. Вы изучали его свойства?\n\nЭйнштейн): Я — физик, а не ботаник, но знаю, что фейхоа богато йодом и витамином C. Вы, наверное, уже придумали, как использовать его в механизмах?\n\nЛеонардо (смеётся): Пока нет, но представьте: сок этого плода как смазка для тонких шестерён? Или экстракт для чернил, меняющих цвет при нагреве… А может, его форма подскажет конструкцию нового летательного аппарата!\n\nЭйнштейн: Вы всегда видите скрытые возможности. Знаете, в физике есть нечто схожее: мы ищем универсальные законы, а природа прячет их в самых неожиданных формах — будь то атом или экзотический фрукт.",
+          "referenceAnswer": "Создай диалог между историческими личностями Леонардо да Винчи и Альбертом Эйнштейном на тему фейхоа.",
+          "timeLimitSeconds": 30,
+          "displayQuestionTextFontSize": 18,
+          "displayAnswerFontSize": 32,
+          "showQuestionTextOnMobile": true,
+          "questionNumberLabel": "Вопрос 6/7"
+      },
+      {
+          "id": "question_7",
+          "title": "Вопрос 7/7",
+          "type": "question",
+          "questionText": "Количество участников: от 6 до 20 человек.\n\nВремя: 15–25 минут.\n\nРеквизит: ничего не требуется (опционально — колокольчик или ёлочная игрушка для передачи «права хода»).\n\nПравила\n\nВсе участники садятся в круг.\n\nВедущий задаёт начало истории (1–2 предложения).\n\nИгра идёт по кругу: каждый участник добавляет одно предложение, развивая сюжет.\n\nНельзя долго раздумывать — на ответ даётся 10–15 секунд.\n\nИстория должна оставаться связной, но приветствуется юмор и неожиданные повороты.\n\nЗапрещено использовать грубые или оскорбительные формулировки.",
+          "referenceAnswer": "Придумай новогодний конкурс для компании людей разных возрастов. Он должен быть весёлым, подвижным, без сложного реквизита, с участием всех типов людей, с творчеством, юмором и новогодней тематикой. Опиши количество участников, время и ход игры.",
+          "timeLimitSeconds": 30,
+          "displayQuestionTextFontSize": 18,
+          "displayAnswerFontSize": 32,
+          "showQuestionTextOnMobile": true,
+          "questionNumberLabel": "Вопрос 7/7"
+      },
+      {
+          "id": "leaderboard1",
+          "title": "Результаты",
+          "type": "leaderboard"
+      },
+      {
+          "id": "question_9",
+          "title": "Вопрос 1/5",
+          "type": "question",
+          "questionText": "Выберите правильный вариант промта",
+          "imageUrl": "https://storage.yandexcloud.net/voting-ett/prompts/task_01.jpg",
+          "referenceAnswer": "Кот в сапогах возле дерева, гиперреализм",
+          "timeLimitSeconds": 30,
+          "displayQuestionTextFontSize": 30,
+          "displayAnswerFontSize": 36,
+          "displayAnswerOptionsFontSize": 36,
+          "displayQuestionTitle": "Выберите правильный вариант промта",
+          "displayAnswerRevealedTitle": "Правильный ответ",
+          "showQuestionTextOnMobile": true,
+          "questionNumberLabel": "Вопрос 1/5",
+          "answerOptions": [
+              {
+                  "text": "Кот ходит вокруг дуба, книжная иллюстрация",
+                  "isCorrect": false
+              },
+              {
+                  "text": "Кот в сапогах возле дерева, гиперреализм",
+                  "isCorrect": true
+              },
+              {
+                  "text": "Красивый зеленый дуб, лето, фотография",
+                  "isCorrect": false
+              },
+              {
+                  "text": "Кот предъявляет уши и хвост, как документы",
+                  "isCorrect": false
+              }
+          ]
+      },
+      {
+          "id": "question_10",
+          "title": "Вопрос 2/5",
+          "type": "question",
+          "questionText": "Выберите правильный вариант промта",
+          "imageUrl": "https://storage.yandexcloud.net/voting-ett/prompts/task_02.jpg",
+          "referenceAnswer": "Ночь, заснеженная дорожка парка, фонари, минимализм, пиксель арт",
+          "timeLimitSeconds": 30,
+          "displayQuestionTextFontSize": 30,
+          "displayAnswerFontSize": 30,
+          "displayAnswerOptionsFontSize": 30,
+          "displayQuestionTitle": "Выберите правильный вариант промта",
+          "displayAnswerRevealedTitle": "Правильный ответ",
+          "showQuestionTextOnMobile": true,
+          "questionNumberLabel": "Вопрос 2/5",
+          "answerOptions": [
+              {
+                  "text": "Городской зимний пейзаж, акварель",
+                  "isCorrect": false
+              },
+              {
+                  "text": "Ночь, заснеженная дорожка парка, фонари, минимализм, пиксель арт",
+                  "isCorrect": true
+              },
+              {
+                  "text": "Новогодняя ночь, снегопад за окном, уют",
+                  "isCorrect": false
+              },
+              {
+                  "text": "Зимняя дорога уходит за горизонт, абстракция",
+                  "isCorrect": false
+              }
+          ]
+      },
+      {
+          "id": "question_11",
+          "title": "Вопрос 3/5",
+          "type": "question",
+          "questionText": "Напишите промпт, по которому Алиса AI нарисовала такую картинку (сложность 1/3)",
+          "imageUrl": "https://storage.yandexcloud.net/voting-ett/prompts/task_03.jpeg",
+          "referenceAnswer": "Городской пейзаж в стиле Ван Гога, вихревые облака, яркие цвета, насыщенные жёлтые и синие тона, улицы города.",
+          "timeLimitSeconds": 30,
+          "displayQuestionTextFontSize": 32,
+          "displayAnswerFontSize": 32,
+          "showQuestionTextOnMobile": true,
+          "questionNumberLabel": "Вопрос 3/5"
+      },
+      {
+          "id": "question_12",
+          "title": "Вопрос 4/5",
+          "type": "question",
+          "questionText": "Напишите промпт, по которому Алиса AI нарисовала такую картинку (сложность 2/3)",
+          "imageUrl": "https://storage.yandexcloud.net/voting-ett/prompts/task_04.jpeg",
+          "referenceAnswer": "Тёплый ретро‑кадр: крупный план советской квартиры. все украшено блестящей мишурой и разноцветными новогодними шарами. По старому телевизору идет новогодняя программа. На ковре уютно устроился пушистый кот. Мягкое освещение, ощущение домашнего тепла и праздника, высокая детализация",
+          "timeLimitSeconds": 30,
+          "displayQuestionTextFontSize": 32,
+          "displayAnswerFontSize": 32,
+          "showQuestionTextOnMobile": true,
+          "questionNumberLabel": "Вопрос 4/5"
+      },
+      {
+          "id": "question_13",
+          "title": "Вопрос 5/5",
+          "type": "question",
+          "questionText": "Напишите промпт, по которому Алиса AI нарисовала такую картинку (сложность 2/3)",
+          "imageUrl": "https://storage.yandexcloud.net/voting-ett/prompts/task_05.jpeg",
+          "referenceAnswer": "Офис, в котором работают снеговики‑клерки.\n\nСовременное светлое open space‑помещение с однотипными рабочими столами и перегородками. Большие окна, за ними — зимний город, идёт снег.\n\nСнеговики сидят за компьютерами, рядом кружки с горячим какао и кофе, бумажные стаканчики, стикеры, стопки документов. На них шарфы, шапки, морковки‑носы, на «лицах» — легкая усталость.\n\nАтмосфера как в сериалах «Офис» или «Разделение»: сероватая палитра, холодный офисный свет, немного абсурд и ирония над корпоративной рутиной. Стиль иллюстрации — полуреалистичный или киношный, с акцентом на выражения и настроение, минимум ярких новогодних красок.",
+          "timeLimitSeconds": 30,
+          "displayQuestionTextFontSize": 32,
+          "displayAnswerFontSize": 24,
+          "showQuestionTextOnMobile": true,
+          "questionNumberLabel": "Вопрос 5/5"
+      },
+      {
+          "id": "leaderboard2",
+          "title": "Результаты",
+          "type": "leaderboard"
+      },
+      {
+          "id": "question_14",
+          "title": "Вопрос 1/3",
+          "type": "question",
+          "questionText": "Выберите правильный вариант промта",
+          "imageUrl": "https://storage.yandexcloud.net/voting-ett/prompts/video_03_h264.mp4",
+          "referenceAnswer": "Собака-спасатель Малибу",
+          "timeLimitSeconds": 30,
+          "displayQuestionTextFontSize": 30,
+          "displayAnswerFontSize": 36,
+          "displayAnswerOptionsFontSize": 30,
+          "displayQuestionTitle": "Выберите правильный вариант промта",
+          "displayAnswerRevealedTitle": "Правильный ответ",
+          "showQuestionTextOnMobile": true,
+          "questionNumberLabel": "Вопрос 1/3",
+          "answerOptions": [
+              {
+                  "text": "Собака ловит круг для плавания как пончик и надевает его на себя",
+                  "isCorrect": false
+              },
+              {
+                  "text": "Хороший мальчик на море",
+                  "isCorrect": false
+              },
+              {
+                  "text": "Собачье счастье",
+                  "isCorrect": false
+              },
+              {
+                  "text": "Собака-спасатель Малибу",
+                  "isCorrect": true
+              }
+          ]
+      },
+      {
+          "id": "question_15",
+          "title": "Вопрос 2/3",
+          "type": "question",
+          "questionText": "Напишите промпт, по которому Алиса AI оживила фото (сложность 1/2)",
+          "imageUrl": "https://disk.yandex.ru/i/ribLTAby2AHGxg",
+          "referenceAnswer": "Фон меняется на берег озера. Мужчина превращается из офисного работника в рыбака с удочкой. Мужчина достаёт удочку и закидывает её в воду. Мягкий белый свет, реалистичные пропорции, черты лица сохранены.",
+          "timeLimitSeconds": 30,
+          "displayQuestionTextFontSize": 32,
+          "displayAnswerFontSize": 32,
+          "showQuestionTextOnMobile": true,
+          "questionNumberLabel": "Вопрос 2/3"
+      },
+      {
+          "id": "question_16",
+          "title": "Вопрос 3/3",
+          "type": "question",
+          "questionText": "Напишите промпт, по которому Алиса AI оживила фото (сложность 2/2)",
+          "imageUrl": "https://storage.yandexcloud.net/voting-ett/prompts/video_02_h264.mp4",
+          "referenceAnswer": "Одной рукой парень достаёт телефон и прикладывает к уху, второй рукой берёт книгу. Сбоку появляются руки, первая держит ноутбук, третья рука держит половник, четвёртая рука держит камеру, пятая рука держит кружку.",
+          "timeLimitSeconds": 30,
+          "displayQuestionTextFontSize": 32,
+          "displayAnswerFontSize": 32,
+          "showQuestionTextOnMobile": true,
+          "questionNumberLabel": "Вопрос 3/3"
+      },
+      {
+          "id": "leaderboard3",
+          "title": "Результаты",
+          "type": "leaderboard"
+      }
   ]
 }

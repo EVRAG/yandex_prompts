@@ -1,0 +1,174 @@
+ 
+.root {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  z-index: 2;
+}
+
+.img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
+
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  z-index: 3;
+}
+
+.content {
+  display: flex;
+  flex: 1;
+  align-items: flex-start;
+}
+
+.leftSection {
+  height: 100%;
+  width: 57%;
+  display: flex;
+  position: relative;
+}
+
+.timerWrapper {
+  position: absolute;
+  top: 50rem;
+  left: 50rem;
+  z-index: 4;
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.rightSection {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 40rem;
+  z-index: 2;
+}
+
+.title {
+  font-size: 44rem;
+  font-weight: 500;
+  line-height: 29rem;
+  color: white;
+  margin-bottom: 53rem;
+  z-index: 2;
+}
+
+.answers {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20rem;
+  width: 100%;
+}
+
+.answerCard {
+  position: relative;
+  background: #201D2A;
+  border: none;
+  border-radius: 12rem;
+  padding: 20rem;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  width: 100%;
+  height: 311rem;
+  display: flex;
+  flex-direction: column;
+  gap: 12rem;
+
+  &:hover {
+    opacity: 0.9;
+  }
+
+  &_selected {
+    background: #7A55FF;
+    color: white;
+
+    span {
+      color: white !important;
+    }
+
+    span {
+      color: white !important;
+    }
+  }
+
+  &_correct {
+    background: #7A55FF;
+    color: white;
+
+    span {
+      color: white !important;
+    }
+
+    span {
+      color: white !important;
+    }
+  }
+
+  &_inactive {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  &:disabled {
+    cursor: default;
+  }
+}
+
+.answerLetter {
+  font-size: 36rem;
+  font-weight: 400;
+  color: white;
+}
+
+.answerText {
+  font-size: 36rem;
+  font-weight: 400;
+  color: white;
+  line-height: 1.2;
+}
+
+.qrSection {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.qrBox {
+  position: absolute;
+  right: 24rem;
+  bottom: 40rem;
+  background: white;
+  border-radius: 12rem;
+  padding: 32rem 42rem;
+  display: flex;
+  align-items: center;
+  gap: 56rem;
+}
+
+.qrText {
+  font-size: 32rem;
+  font-weight: 400;
+  color: #7A55FF;
+  line-height: 1.1;
+}
+
+.qrCode {
+  height: 98rem;
+}
