@@ -76,7 +76,7 @@ export function TextQuestion({
   if (shouldShowResult && resultSubmission) {
     return (
       <QuestionResult
-        score={resultSubmission.score}
+        score={resultSubmission.score ?? 0}
         feedback={resultSubmission.feedback || ''}
         playerName={playerName}
         playerScore={playerScore}
