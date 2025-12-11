@@ -2,6 +2,7 @@ import { io, Socket } from 'socket.io-client';
 import { useEffect, useState } from 'react';
 import { SERVER_URL } from '../lib/constants';
 import type { GameConfig, GameStage, Player } from '@prompt-night/shared';
+import { useRef } from 'react';
 
 export interface RealtimeState {
   currentStage: GameStage;
@@ -10,6 +11,7 @@ export interface RealtimeState {
   leaderboard?: Player[]; // Sorted leaderboard (for all clients)
   currentPlayer?: { id: string; name: string; score: number }; // Current player info (for player namespace)
   submissions?: any[]; // Only for admin
+  version?: number; // State version for polling fallback
 }
 
 export function useRealtime(namespace: string, auth?: any) {
@@ -17,6 +19,7 @@ export function useRealtime(namespace: string, auth?: any) {
   const [isConnected, setIsConnected] = useState(false);
   const [state, setState] = useState<RealtimeState | null>(null);
   const [config, setConfig] = useState<GameConfig | null>(null);
+  const versionRef = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     const s = io(`${SERVER_URL}/${namespace}`, {
@@ -46,6 +49,7 @@ export function useRealtime(namespace: string, auth?: any) {
 
     s.on('state:update', (newState: RealtimeState) => {
       console.log(`[${namespace}] Received state update:`, newState);
+      versionRef.current = newState.version ?? versionRef.current;
       setState(prev => ({ ...prev, ...newState }));
     });
 
@@ -55,6 +59,37 @@ export function useRealtime(namespace: string, auth?: any) {
       s.disconnect();
     };
   }, [namespace, JSON.stringify(auth)]); // simplistic dep check
+
+  // Fallback polling of /state with adaptive interval:
+  // - When WS connected: poll редко (20s)
+  // - Когда WS отвален/рестартится: чаще (5s) для страховки.
+  useEffect(() => {
+    let intervalId: number | undefined;
+    let stopped = false;
+
+    const poll = async () => {
+      try {
+        const res = await fetch(`${SERVER_URL}/state`);
+        if (!res.ok) return;
+        const snapshot = await res.json();
+        // Сверяем версию, чтобы не перетереть свежий стейт.
+        if (snapshot?.version !== undefined && snapshot.version === versionRef.current) return;
+        versionRef.current = snapshot.version ?? versionRef.current;
+        setState(prev => ({ ...prev, ...snapshot }));
+      } catch (e) {
+        console.error(`[${namespace}] /state polling error:`, e);
+      }
+    };
+
+    // Старт сразу один раз
+    poll();
+    intervalId = window.setInterval(poll, isConnected ? 20000 : 5000);
+
+    return () => {
+      stopped = true;
+      if (intervalId) window.clearInterval(intervalId);
+    };
+  }, [isConnected, namespace]);
 
   return { socket, isConnected, state, config };
 }

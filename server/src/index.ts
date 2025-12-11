@@ -5,7 +5,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { createAdapter } from '@socket.io/redis-adapter';
 import { redis, redisSubscriber } from './redisClient';
-import { loadStateFromRedis, getState, setState, addPlayer, getPlayer, setStage, setStageStatus, getCurrentStage, addSubmission, getSubmissionsForStage, resetState, Player, updateSubmission } from './gameState';
+import { loadStateFromRedis, getState, setState, addPlayer, getPlayer, setStage, setStageStatus, getCurrentStage, addSubmission, getSubmissionsForStage, resetState, Player, updateSubmission, getStateVersion } from './gameState';
 import { moderateNickname } from './services/nicknameModeration';
 import { scoreQueue } from './queue/scoreQueue';
 import { Queue } from 'bullmq';
@@ -79,6 +79,23 @@ app.get('/config', (req, res) => {
   res.json(gameConfig);
 });
 
+app.get('/state', (req, res) => {
+  const state = getState();
+  const currentStage = getCurrentStage();
+  const leaderboard = Object.values(state.players)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 100);
+
+  res.json({
+    version: getStateVersion(),
+    currentStage,
+    playerCount: Object.keys(state.players).length,
+    leaderboard,
+    players: state.players,
+    submissions: state.submissions,
+  });
+});
+
 app.post('/moderate/nickname', async (req, res) => {
   const { nickname } = req.body;
   if (!nickname || typeof nickname !== 'string') {
@@ -100,6 +117,7 @@ const displayIo = io.of('/display');
 function broadcastState() {
   const state = getState();
   const currentStage = getCurrentStage();
+  const version = getStateVersion();
   
   // Calculate leaderboard (sorted by score)
   const leaderboard = Object.values(state.players)
@@ -111,6 +129,7 @@ function broadcastState() {
   const publicState = {
     currentStage,
     playerCount: Object.keys(state.players).length,
+    version,
     leaderboard, // Include leaderboard for players too
   };
 
@@ -118,6 +137,7 @@ function broadcastState() {
   const fullState = {
     ...state,
     currentStage,
+    version,
     leaderboard,
   };
 
@@ -184,6 +204,7 @@ playerIo.on('connection', (socket) => {
   const leaderboard = Object.values(state.players)
     .sort((a, b) => b.score - a.score)
     .slice(0, 100);
+  const version = getStateVersion();
   
   // Find player's submission for current stage if player exists
   const playerSubmission = currentPlayer ? state.submissions.find(
@@ -194,6 +215,7 @@ playerIo.on('connection', (socket) => {
     currentStage, 
     playerCount: Object.keys(state.players).length,
     leaderboard,
+    version,
     currentPlayer: currentPlayer ? { id: currentPlayer.id, name: currentPlayer.name, score: currentPlayer.score } : undefined,
     submissions: playerSubmission ? [playerSubmission] : [],
   });
@@ -213,6 +235,7 @@ playerIo.on('connection', (socket) => {
     const leaderboard = Object.values(state.players)
       .sort((a, b) => b.score - a.score)
       .slice(0, 100);
+    const version = getStateVersion();
     
     // Find player's submission for current stage
     const playerSubmission = state.submissions.find(
@@ -223,6 +246,7 @@ playerIo.on('connection', (socket) => {
       currentStage,
       playerCount: Object.keys(state.players).length,
       leaderboard,
+      version,
       currentPlayer: { id: newPlayer.id, name: newPlayer.name, score: newPlayer.score },
       submissions: playerSubmission ? [playerSubmission] : [],
     });
@@ -291,6 +315,7 @@ playerIo.on('connection', (socket) => {
       const leaderboard = Object.values(state.players)
         .sort((a, b) => b.score - a.score)
         .slice(0, 100);
+      const version = getStateVersion();
       
       // Find player's submission for current stage
       const playerSubmission = state.submissions.find(
@@ -301,6 +326,7 @@ playerIo.on('connection', (socket) => {
         currentStage,
         playerCount: Object.keys(state.players).length,
         leaderboard,
+        version,
         currentPlayer: { id: updatedPlayer.id, name: updatedPlayer.name, score: updatedPlayer.score },
         submissions: playerSubmission ? [playerSubmission] : [], // Send only player's submission for current stage
       });
@@ -338,6 +364,7 @@ adminIo.on('connection', (socket) => {
   socket.emit('state:update', { 
     ...currentState, 
     currentStage,
+    version: getStateVersion(),
     playerCount: Object.keys(currentState.players).length,
   });
 
@@ -377,7 +404,7 @@ adminIo.on('connection', (socket) => {
 
 // Display Connection
 displayIo.on('connection', (socket) => {
-  socket.emit('state:update', { ...getState(), currentStage: getCurrentStage() });
+  socket.emit('state:update', { ...getState(), currentStage: getCurrentStage(), version: getStateVersion() });
 });
 
 const PORT = process.env.PORT || 4000;

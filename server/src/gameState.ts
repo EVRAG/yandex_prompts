@@ -20,6 +20,15 @@ const initialState: PersistedState = {
 
 // In-memory state mirror
 let state: PersistedState = { ...initialState };
+let stateVersion = 0;
+
+function bumpStateVersion() {
+  stateVersion += 1;
+}
+
+export function getStateVersion() {
+  return stateVersion;
+}
 
 export function getState() {
   return state;
@@ -29,10 +38,12 @@ export function setState(newState: PersistedState) {
   state = newState;
   // In a real app we might debounce this or save on critical changes
   // For now, we'll save on change in the background
+  bumpStateVersion();
   saveStateToRedis().catch(console.error);
 }
 
 const STATE_KEY = 'prompt-night:gamestate';
+const STATE_VERSION_KEY = 'prompt-night:gamestate:version';
 
 export async function loadStateFromRedis() {
   const data = await redis.get(STATE_KEY);
@@ -44,10 +55,16 @@ export async function loadStateFromRedis() {
       console.error('Failed to parse state from Redis', e);
     }
   }
+  const ver = await redis.get(STATE_VERSION_KEY);
+  if (ver) {
+    const parsed = Number(ver);
+    stateVersion = Number.isFinite(parsed) ? parsed : 0;
+  }
 }
 
 async function saveStateToRedis() {
   await redis.set(STATE_KEY, JSON.stringify(state));
+  await redis.set(STATE_VERSION_KEY, String(stateVersion));
 }
 
 export function getPlayer(id: string) {
@@ -65,6 +82,7 @@ export function addPlayer(id: string, name: string) {
     isOnline: true,
   };
   state.players[id] = player;
+  bumpStateVersion();
   saveStateToRedis();
   return player;
 }
@@ -72,6 +90,7 @@ export function addPlayer(id: string, name: string) {
 export function updatePlayerScore(id: string, delta: number) {
   if (state.players[id]) {
     state.players[id].score += delta;
+    bumpStateVersion();
     saveStateToRedis();
   }
 }
@@ -111,6 +130,7 @@ export function setStage(stageId: string) {
     delete state.stageStartTime;
   }
   
+  bumpStateVersion();
   saveStateToRedis();
   return true;
 }
@@ -120,11 +140,13 @@ export function setStageStatus(status: GameStage['status']) {
   if (status === 'active') {
     state.stageStartTime = Date.now();
   }
+  bumpStateVersion();
   saveStateToRedis();
 }
 
 export function addSubmission(submission: Submission) {
   state.submissions.push(submission);
+  bumpStateVersion();
   saveStateToRedis();
 }
 
@@ -140,6 +162,7 @@ export function updateSubmission(id: string, updates: Partial<Submission>) {
     }
     
     Object.assign(sub, updates);
+    bumpStateVersion();
     saveStateToRedis();
     
     // Notify that state changed (for real-time updates)
@@ -153,6 +176,7 @@ export function getSubmissionsForStage(stageId: string) {
 
 export function resetState() {
   state = { ...initialState };
+  bumpStateVersion();
   saveStateToRedis();
   console.log('[gameState] State reset to initial');
 }
