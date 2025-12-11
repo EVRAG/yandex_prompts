@@ -292,7 +292,7 @@
           "title": "Вопрос 2/3",
           "type": "question",
           "questionText": "Напишите промпт, по которому Алиса AI оживила фото (сложность 1/2)",
-          "imageUrl": "https://disk.yandex.ru/i/ribLTAby2AHGxg",
+          "imageUrl": "https://storage.yandexcloud.net/voting-ett/prompts/video_01_h264.mp4",
           "referenceAnswer": "Фон меняется на берег озера. Мужчина превращается из офисного работника в рыбака с удочкой. Мужчина достаёт удочку и закидывает её в воду. Мягкий белый свет, реалистичные пропорции, черты лица сохранены.",
           "timeLimitSeconds": 30,
           "displayQuestionTextFontSize": 32,
