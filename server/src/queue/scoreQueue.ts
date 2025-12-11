@@ -43,6 +43,8 @@ const worker = new Worker('scoring', async (job) => {
       .replace('{{reference}}', referenceAnswer)
       .replace('{{answer}}', participantAnswer);
 
+    console.log('[scoring] Prompt payload:\n', prompt);
+
     console.log(`[scoring] Sending request to YandexGPT with model: ${model}`);
     
     const response = await client.chat.completions.create({
