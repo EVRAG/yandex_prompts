@@ -12,6 +12,7 @@ export function DisplayMultipleChoiceQuestion({ stage }: DisplayMultipleChoiceQu
   
   // Показываем правильный ответ если время истекло или статус revealed
   const showRightAnswer = stage.status === 'revealed' || stage.status === 'locked';
+  const questionLabel = stage.questionNumberLabel || stage.title;
   
   // Буквы для вариантов (А, Б, В, Г, Д, Е, ...)
   const getLetter = (index: number) => {
@@ -45,9 +46,9 @@ export function DisplayMultipleChoiceQuestion({ stage }: DisplayMultipleChoiceQu
                 />
               </div>
             )}
-            {stage.questionNumberLabel && (
+            {questionLabel && (
               <div className={s.questionNumber}>
-                {stage.questionNumberLabel}
+                {questionLabel}
               </div>
             )}
             {hasMedia ? (

@@ -9,6 +9,7 @@ interface DisplayTextQuestionProps {
 export function DisplayTextQuestion({ stage }: DisplayTextQuestionProps) {
   const isFinished = stage.status === 'locked' || stage.status === 'revealed';
   const hasMedia = Boolean(stage.imageUrl);
+  const questionLabel = stage.questionNumberLabel || stage.title;
 
   return (
     <div className={s.root}>
@@ -24,9 +25,9 @@ export function DisplayTextQuestion({ stage }: DisplayTextQuestionProps) {
                 />
               </div>
             )}
-            {stage.questionNumberLabel && (
+            {questionLabel && (
               <div className={s.questionNumber}>
-                {stage.questionNumberLabel}
+                {questionLabel}
               </div>
             )}
             {hasMedia ? (
