@@ -7,7 +7,7 @@ export function DisplayRegistration() {
         <img className={s.logo} src="/images/logo.svg" alt="logo" />
         <div className={s.content}>
           <div className={s.qrWrapper}>
-            <img className={s.qr} src="/images/qr.png" alt="qr" />
+            <img className={s.qr} src="/images/qr.svg" alt="qr" />
           </div>
           <p className={s.title}>
             Отсканируйте qr-код, <br />

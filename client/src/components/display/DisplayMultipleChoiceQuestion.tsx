@@ -119,7 +119,7 @@ export function DisplayMultipleChoiceQuestion({ stage }: DisplayMultipleChoiceQu
                   Отсканируйте qr-код, <br />
                   чтобы участвовать
                 </p>
-                <img className={s.qrCode} src="/images/qr.png" alt="QR code" />
+                <img className={s.qrCode} src="/images/qr.svg" alt="QR code" />
               </div>
             </div>
           </div>

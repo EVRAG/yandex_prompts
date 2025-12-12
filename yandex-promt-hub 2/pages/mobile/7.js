@@ -10,3 +10,6 @@ function MobileSevenPage() {
 }
 
 export default MobileSevenPage;
+
+
+

@@ -21,3 +21,6 @@ export function log(level: LogLevel, message: string, fields: LogFields = {}): v
     console.log(serialized);
   }
 }
+
+
+

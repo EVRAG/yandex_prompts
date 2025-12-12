@@ -46,13 +46,15 @@
   top: 50px;
   right: 50px;
   z-index: 4;
-  height: 74px;
   display: flex;
   align-items: center;
-  font-size: 44px;
+  font-size: 22px;
   font-weight: 500;
-  line-height: 69px;
+  line-height: 34px;
   color: black;
+  background: white;
+  padding: 8px 16px;
+  border-radius: 14px;
   white-space: pre-line;
 }
 

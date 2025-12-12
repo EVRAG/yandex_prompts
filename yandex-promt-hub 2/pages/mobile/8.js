@@ -10,3 +10,6 @@ function MobileEightPage() {
 }
 
 export default MobileEightPage;
+
+
+

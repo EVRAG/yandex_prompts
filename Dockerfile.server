@@ -30,3 +30,6 @@ COPY --from=builder /app/shared ./shared
 EXPOSE 4000
 
 CMD ["node", "server/dist/index.js"]
+
+
+

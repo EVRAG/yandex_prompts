@@ -24,3 +24,6 @@ const logError = (label: string) => (err: unknown) => {
 
 redis.on('error', logError('client'));
 redisSubscriber.on('error', logError('subscriber'));
+
+
+

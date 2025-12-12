@@ -10,3 +10,6 @@ function MobileSixPage() {
 }
 
 export default MobileSixPage;
+
+
+
